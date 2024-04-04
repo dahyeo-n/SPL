@@ -112,7 +112,8 @@ const SignUpPage = () => {
       setEmail('');
       setPassword('');
 
-      alert('회원가입이 완료되었습니다! 로그인 페이지로 이동합니다.');
+      alert(`${nickname}님, 스플과 함께해주셔서 감사해요!
+      스플이 ${nickname}님이 목표를 이룰 수 있게 도울게요 :)`);
       await supabase.auth.signOut();
       router.replace('/sign/signin');
 
