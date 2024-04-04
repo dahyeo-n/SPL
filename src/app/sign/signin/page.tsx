@@ -150,7 +150,7 @@ const SignInPage = () => {
             />
             {!pwValid && (
               <p className='text-red-500'>
-                * 영문, 숫자, 특수문자 포함 8자 이상 입력해주세요.
+                * 영문/숫자/특수문자 포함 8자 이상 입력해주세요.
               </p>
             )}
             {error && <p style={{ color: 'red' }}>{error}</p>}

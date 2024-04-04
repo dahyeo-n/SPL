@@ -278,7 +278,7 @@ const SignUpPage = () => {
             />
             {!pwValid && (
               <div className='text-red-500'>
-                * 영문, 숫자, 특수문자 포함 8자 이상 입력해주세요.
+                * 영문/숫자/특수문자 포함 8자 이상 입력해주세요.
               </div>
             )}
             {error && <div style={{ color: 'red' }}>{error}</div>}
