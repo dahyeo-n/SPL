@@ -9,6 +9,7 @@ import { Input } from '@nextui-org/react';
 import { EyeFilledIcon } from '../EyeFilledIcon';
 import { EyeSlashFilledIcon } from '../EyeSlashFilledIcon';
 import { Button } from '@nextui-org/react';
+import Link from 'next/link';
 
 const SignInPage = () => {
   const [email, setEmail] = useState('');
@@ -68,6 +69,7 @@ const SignInPage = () => {
 
       setEmail('');
       setPassword('');
+      alert(`오늘도 함께해주셔서 감사해요! 성공적으로 로그인되었어요 :)`);
       router.replace('/');
     } catch (error: any) {
       setError(error.message);
@@ -106,7 +108,7 @@ const SignInPage = () => {
       <form onSubmit={handleSubmitSignIn}>
         <div className='mb-3'>
           <Input
-            isClearable
+            isRequired
             className='max-w-xs w-full mb-1'
             style={{ width: '330px' }}
             type='email'
@@ -127,6 +129,7 @@ const SignInPage = () => {
         <div>
           <div className='mb-4'>
             <Input
+              isRequired
               className='max-w-xs w-full mb-1'
               type={isVisible ? 'text' : 'password'}
               label='Password'
@@ -150,23 +153,28 @@ const SignInPage = () => {
             />
             {!pwValid && (
               <p className='text-red-500'>
-                * 영문, 숫자, 특수문자 포함 8자 이상 입력해주세요.
+                * 영문/숫자/특수문자 포함 8자 이상 입력해주세요.
               </p>
             )}
             {error && <p style={{ color: 'red' }}>{error}</p>}
           </div>
-          <div className='flex justify-center'></div>
-          <Button
-            className='w-full max-w-xs'
-            type='submit'
-            disabled={loading}
-            color='primary'
-            variant='ghost'
-          >
-            {loading ? '처리 중...' : '로그인하기'}
-          </Button>
+
+          <div className='flex justify-center mb-4'>
+            <Button
+              className='w-full max-w-xs'
+              type='submit'
+              disabled={loading}
+              color='primary'
+              variant='ghost'
+            >
+              {loading ? '처리 중...' : '로그인하기'}
+            </Button>
+          </div>
         </div>
       </form>
+      <Link href='/sign/signup'>
+        가입한 이력이 없으신가요? 회원가입하러 가기
+      </Link>
     </div>
   );
 };

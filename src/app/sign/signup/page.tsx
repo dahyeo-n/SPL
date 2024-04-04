@@ -11,6 +11,7 @@ import { EyeFilledIcon } from '../EyeFilledIcon';
 import { EyeSlashFilledIcon } from '../EyeSlashFilledIcon';
 import { Button } from '@nextui-org/react';
 import { Select, SelectItem } from '@nextui-org/react';
+import Link from 'next/link';
 
 const SignUpPage = () => {
   const [nickname, setNickname] = useState('');
@@ -146,12 +147,10 @@ const SignUpPage = () => {
   };
 
   const handleUserTypeSelectionChange = (
-    // e: (keys: React.Key[]) => void
     e: React.ChangeEvent<HTMLSelectElement>
   ) => {
     const value = e.target.value;
 
-    // 타입 지정... 뭐로 해야 에러 안 떠줄 거니 정말
     setUserType(value);
     setUserTypeValid(validateUserType(value));
   };
@@ -198,6 +197,8 @@ const SignUpPage = () => {
             style={{ width: '330px' }}
             type='text'
             label='Nickname'
+            minLength={1}
+            maxLength={15}
             variant='bordered'
             value={nickname}
             onClear={handleNicknameFieldClear}
@@ -278,25 +279,26 @@ const SignUpPage = () => {
             />
             {!pwValid && (
               <div className='text-red-500'>
-                * 영문, 숫자, 특수문자 포함 8자 이상 입력해주세요.
+                * 영문/숫자/특수문자 포함 8자 이상 입력해주세요.
               </div>
             )}
             {error && <div style={{ color: 'red' }}>{error}</div>}
           </div>
 
-          <div className='flex justify-center'></div>
-          <Button
-            className='w-full max-w-xs'
-            type='submit'
-            disabled={loading}
-            color='primary'
-            variant='ghost'
-          >
-            {loading ? '처리 중...' : '회원가입하기'}
-          </Button>
+          <div className='flex justify-center mb-4'>
+            <Button
+              className='w-full max-w-xs'
+              type='submit'
+              disabled={loading}
+              color='primary'
+              variant='ghost'
+            >
+              {loading ? '처리 중...' : '회원가입하기'}
+            </Button>
+          </div>
         </div>
       </form>
-      {/* 로그인 페이지로 이동하는 router 추가 */}
+      <Link href='/sign/signin'>이미 가입하셨나요? 로그인하러 가기</Link>
     </div>
   );
 };
