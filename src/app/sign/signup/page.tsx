@@ -14,17 +14,29 @@ import { Select, SelectItem } from '@nextui-org/react';
 
 const SignUpPage = () => {
   const [nickname, setNickname] = useState('');
-  const [userType, setUserType] = useState([]);
+  const [userType, setUserType] = useState('중고등학생');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+
+  const [nicknameValid, setNicknameValid] = useState(true);
+  const [userTypeValid, setUserTypeValid] = useState(true);
   const [emailValid, setEmailValid] = useState(true);
   const [pwValid, setPwValid] = useState(true);
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [isVisible, setIsVisible] = React.useState(false);
 
   const router = useRouter();
   const userTypes = ['중고등학생', '수험생', '대학생', '고시생', '직장인'];
+
+  const validateNickname = (value: any) => {
+    return value.length > 0 && value.length <= 15;
+  };
+
+  const validateUserType = (value: any) => {
+    return userTypes.includes(value);
+  };
 
   const validateEmail = (email: string) => {
     const regExp = /\S+@\S+\.\S+/;
@@ -48,8 +60,14 @@ const SignUpPage = () => {
   const handleSubmitSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    const isNicknameValid = validateNickname(nickname);
+    const isUserTypeValid = validateUserType(userType);
+    setNicknameValid(isNicknameValid);
+    setUserTypeValid(isUserTypeValid);
+
     if (
-      nickname.length === 0 ||
+      !isNicknameValid ||
+      !isUserTypeValid ||
       email.length === 0 ||
       password.length === 0 ||
       !emailValid ||
@@ -108,7 +126,7 @@ const SignUpPage = () => {
         setError(error.message);
         console.error(error);
       } else {
-        console.error('알 수 없는 에러:', error);
+        console.error('알 수 없는 에러: ', error);
       }
       setLoading(false);
       alert('회원가입 도중 오류가 발생하였습니다. 고객센터로 연락해주세요.');
@@ -116,27 +134,45 @@ const SignUpPage = () => {
     }
   };
 
-  const handleSubmitNickname = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSubmitNickname = (e: any) => {
+    const value = e.target.value;
+
     if (error.length !== 0) {
       setError('');
     }
-    setNickname(e.target.value);
+    setNickname(value);
+    setNicknameValid(validateNickname(value));
+  };
+
+  const handleUserTypeSelectionChange = (
+    // e: (keys: React.Key[]) => void
+    e: React.ChangeEvent<HTMLSelectElement>
+  ) => {
+    const value = e.target.value;
+
+    // 타입 지정... 뭐로 해야 에러 안 떠줄 거니 정말
+    setUserType(value);
+    setUserTypeValid(validateUserType(value));
   };
 
   const handleSubmitEmail = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+
     if (error.length !== 0) {
       setError('');
     }
-    setEmail(e.target.value);
-    validateEmail(e.target.value);
+    setEmail(value);
+    validateEmail(value);
   };
 
   const handleSubmitPassword = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+
     if (error.length !== 0) {
       setError('');
     }
-    setPassword(e.target.value);
-    validatePassword(e.target.value);
+    setPassword(value);
+    validatePassword(value);
   };
 
   const handleEmailFieldClear = () => {
@@ -146,10 +182,6 @@ const SignUpPage = () => {
 
   const handleNicknameFieldClear = () => {
     setNickname('');
-  };
-
-  const handleUserTypeSelectionChange = (e: any) => {
-    setUserType(e.target.value);
   };
 
   const toggleVisibility = () => setIsVisible(!isVisible);
@@ -171,6 +203,11 @@ const SignUpPage = () => {
             onChange={handleSubmitNickname}
             placeholder='Enter your nickname'
           />
+          {!nicknameValid && (
+            <div className='text-red-500'>
+              * 닉네임을 1자 이상 15자 이하로 입력해주세요.
+            </div>
+          )}
         </div>
 
         <div className='mb-3'>
@@ -188,6 +225,9 @@ const SignUpPage = () => {
               </SelectItem>
             ))}
           </Select>
+          {!userTypeValid && (
+            <div className='text-red-500'>* 사용자 유형을 선택해주세요.</div>
+          )}
         </div>
 
         <div className='mb-3'>
