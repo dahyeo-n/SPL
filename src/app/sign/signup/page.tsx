@@ -10,17 +10,33 @@ import { Input } from '@nextui-org/react';
 import { EyeFilledIcon } from '../EyeFilledIcon';
 import { EyeSlashFilledIcon } from '../EyeSlashFilledIcon';
 import { Button } from '@nextui-org/react';
+import { Select, SelectItem } from '@nextui-org/react';
 
 const SignUpPage = () => {
+  const [nickname, setNickname] = useState('');
+  const [userType, setUserType] = useState('중고등학생');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+
+  const [nicknameValid, setNicknameValid] = useState(true);
+  const [userTypeValid, setUserTypeValid] = useState(true);
   const [emailValid, setEmailValid] = useState(true);
   const [pwValid, setPwValid] = useState(true);
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [isVisible, setIsVisible] = React.useState(false);
 
   const router = useRouter();
+  const userTypes = ['중고등학생', '수험생', '대학생', '고시생', '직장인'];
+
+  const validateNickname = (value: any) => {
+    return value.length > 0 && value.length <= 15;
+  };
+
+  const validateUserType = (value: any) => {
+    return userTypes.includes(value);
+  };
 
   const validateEmail = (email: string) => {
     const regExp = /\S+@\S+\.\S+/;
@@ -44,7 +60,14 @@ const SignUpPage = () => {
   const handleSubmitSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    const isNicknameValid = validateNickname(nickname);
+    const isUserTypeValid = validateUserType(userType);
+    setNicknameValid(isNicknameValid);
+    setUserTypeValid(isUserTypeValid);
+
     if (
+      !isNicknameValid ||
+      !isUserTypeValid ||
       email.length === 0 ||
       password.length === 0 ||
       !emailValid ||
@@ -72,9 +95,9 @@ const SignUpPage = () => {
           .insert([
             {
               user_uid: data.user.id,
-              nickname: '개발하는_고양이',
+              nickname: nickname,
               email: data.user.email,
-              user_type: '대학생',
+              user_type: userType,
               created_at: data.user.created_at,
             },
           ]);
@@ -89,7 +112,8 @@ const SignUpPage = () => {
       setEmail('');
       setPassword('');
 
-      alert('회원가입이 완료되었습니다! 로그인 페이지로 이동합니다.');
+      alert(`${nickname}님, 스플과 함께해주셔서 감사해요!
+      스플이 ${nickname}님이 목표를 이룰 수 있게 도울게요 :)`);
       await supabase.auth.signOut();
       router.replace('/sign/signin');
 
@@ -98,34 +122,67 @@ const SignUpPage = () => {
         console.log(error);
         return;
       }
-    } catch (error: any) {
-      setError(error.message);
-      alert('회원가입 도중 오류가 발생하였습니다. 고객센터로 연락해주세요.');
-      console.error(error);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        setError(error.message);
+        console.error(error);
+      } else {
+        console.error('알 수 없는 에러: ', error);
+      }
       setLoading(false);
+      alert('회원가입 도중 오류가 발생하였습니다. 고객센터로 연락해주세요.');
       return;
     }
   };
 
-  const handleSubmitEmail = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSubmitNickname = (e: any) => {
+    const value = e.target.value;
+
     if (error.length !== 0) {
       setError('');
     }
-    setEmail(e.target.value);
-    validateEmail(e.target.value);
+    setNickname(value);
+    setNicknameValid(validateNickname(value));
+  };
+
+  const handleUserTypeSelectionChange = (
+    // e: (keys: React.Key[]) => void
+    e: React.ChangeEvent<HTMLSelectElement>
+  ) => {
+    const value = e.target.value;
+
+    // 타입 지정... 뭐로 해야 에러 안 떠줄 거니 정말
+    setUserType(value);
+    setUserTypeValid(validateUserType(value));
+  };
+
+  const handleSubmitEmail = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+
+    if (error.length !== 0) {
+      setError('');
+    }
+    setEmail(value);
+    validateEmail(value);
   };
 
   const handleSubmitPassword = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+
     if (error.length !== 0) {
       setError('');
     }
-    setPassword(e.target.value);
-    validatePassword(e.target.value);
+    setPassword(value);
+    validatePassword(value);
   };
 
   const handleEmailFieldClear = () => {
     setEmail('');
     setEmailValid(true);
+  };
+
+  const handleNicknameFieldClear = () => {
+    setNickname('');
   };
 
   const toggleVisibility = () => setIsVisible(!isVisible);
@@ -136,7 +193,47 @@ const SignUpPage = () => {
       <form onSubmit={handleSubmitSignUp}>
         <div className='mb-3'>
           <Input
-            isClearable
+            isRequired
+            className='max-w-xs w-full mb-1'
+            style={{ width: '330px' }}
+            type='text'
+            label='Nickname'
+            variant='bordered'
+            value={nickname}
+            onClear={handleNicknameFieldClear}
+            onChange={handleSubmitNickname}
+            placeholder='Enter your nickname'
+          />
+          {!nicknameValid && (
+            <div className='text-red-500'>
+              * 닉네임을 1자 이상 15자 이하로 입력해주세요.
+            </div>
+          )}
+        </div>
+
+        <div className='mb-3'>
+          <Select
+            isRequired
+            className='max-w-xs'
+            label='Type'
+            placeholder='Select your type'
+            defaultSelectedKeys={[]}
+            onChange={handleUserTypeSelectionChange}
+          >
+            {userTypes.map((type) => (
+              <SelectItem key={type} value={type}>
+                {type}
+              </SelectItem>
+            ))}
+          </Select>
+          {!userTypeValid && (
+            <div className='text-red-500'>* 사용자 유형을 선택해주세요.</div>
+          )}
+        </div>
+
+        <div className='mb-3'>
+          <Input
+            isRequired
             className='max-w-xs w-full mb-1'
             style={{ width: '330px' }}
             type='email'
@@ -157,6 +254,7 @@ const SignUpPage = () => {
         <div>
           <div className='mb-4'>
             <Input
+              isRequired
               className='max-w-xs w-full mb-1'
               type={isVisible ? 'text' : 'password'}
               label='Password'
@@ -185,6 +283,7 @@ const SignUpPage = () => {
             )}
             {error && <div style={{ color: 'red' }}>{error}</div>}
           </div>
+
           <div className='flex justify-center'></div>
           <Button
             className='w-full max-w-xs'
@@ -197,6 +296,7 @@ const SignUpPage = () => {
           </Button>
         </div>
       </form>
+      {/* 로그인 페이지로 이동하는 router 추가 */}
     </div>
   );
 };
