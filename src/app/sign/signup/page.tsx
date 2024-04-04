@@ -147,12 +147,10 @@ const SignUpPage = () => {
   };
 
   const handleUserTypeSelectionChange = (
-    // e: (keys: React.Key[]) => void
     e: React.ChangeEvent<HTMLSelectElement>
   ) => {
     const value = e.target.value;
 
-    // 타입 지정... 뭐로 해야 에러 안 떠줄 거니 정말
     setUserType(value);
     setUserTypeValid(validateUserType(value));
   };
