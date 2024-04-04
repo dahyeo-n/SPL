@@ -17,7 +17,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang='ko'>
+    <html lang='ko' className='dark'>
+      {/* <html lang='ko'> */}
       <body className={inter.className}>
         <QueryProvider>{children}</QueryProvider>
       </body>
