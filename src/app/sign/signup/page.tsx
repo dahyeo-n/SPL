@@ -11,6 +11,7 @@ import { EyeFilledIcon } from '../EyeFilledIcon';
 import { EyeSlashFilledIcon } from '../EyeSlashFilledIcon';
 import { Button } from '@nextui-org/react';
 import { Select, SelectItem } from '@nextui-org/react';
+import Link from 'next/link';
 
 const SignUpPage = () => {
   const [nickname, setNickname] = useState('');
@@ -198,6 +199,8 @@ const SignUpPage = () => {
             style={{ width: '330px' }}
             type='text'
             label='Nickname'
+            minLength={1}
+            maxLength={15}
             variant='bordered'
             value={nickname}
             onClear={handleNicknameFieldClear}
@@ -297,6 +300,7 @@ const SignUpPage = () => {
         </div>
       </form>
       {/* 로그인 페이지로 이동하는 router 추가 */}
+      {/* <Link href={} /> */}
     </div>
   );
 };
