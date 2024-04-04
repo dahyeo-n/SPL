@@ -3,7 +3,7 @@ import { Image } from '@nextui-org/react';
 
 const Header = () => {
   return (
-    <div className='flex justify-center w-full overflow-hidden'>
+    <div className='flex justify-center w-full overflow-hidden mb-8'>
       <Image
         width={500}
         height={200}
