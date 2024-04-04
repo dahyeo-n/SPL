@@ -3,7 +3,7 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 
 import QueryProvider from './provider';
-import Header from '@/components/common/Header';
+import NavBar from '@/components/common/Navbar';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -21,7 +21,7 @@ export default function RootLayout({
     <html lang='ko' className='dark'>
       {/* <html lang='ko'> */}
       <QueryProvider>
-        <Header />
+        <NavBar />
         <body className={inter.className}></body>
         {children}
       </QueryProvider>
