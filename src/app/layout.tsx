@@ -18,8 +18,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang='ko' className='dark'>
-      {/* <html lang='ko'> */}
+    // <html lang='ko' className='dark'>
+    <html lang='ko'>
       <QueryProvider>
         <NavBar />
         <body className={inter.className}></body>
