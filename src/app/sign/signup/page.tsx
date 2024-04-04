@@ -10,8 +10,11 @@ import { Input } from '@nextui-org/react';
 import { EyeFilledIcon } from '../EyeFilledIcon';
 import { EyeSlashFilledIcon } from '../EyeSlashFilledIcon';
 import { Button } from '@nextui-org/react';
+import { Select, SelectItem } from '@nextui-org/react';
 
 const SignUpPage = () => {
+  const [nickname, setNickname] = useState('');
+  const [userType, setUserType] = useState([]);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [emailValid, setEmailValid] = useState(true);
@@ -21,6 +24,7 @@ const SignUpPage = () => {
   const [isVisible, setIsVisible] = React.useState(false);
 
   const router = useRouter();
+  const userTypes = ['중고등학생', '수험생', '대학생', '고시생', '직장인'];
 
   const validateEmail = (email: string) => {
     const regExp = /\S+@\S+\.\S+/;
@@ -45,6 +49,7 @@ const SignUpPage = () => {
     e.preventDefault();
 
     if (
+      nickname.length === 0 ||
       email.length === 0 ||
       password.length === 0 ||
       !emailValid ||
@@ -72,9 +77,9 @@ const SignUpPage = () => {
           .insert([
             {
               user_uid: data.user.id,
-              nickname: '개발하는_고양이',
+              nickname: nickname,
               email: data.user.email,
-              user_type: '대학생',
+              user_type: userType,
               created_at: data.user.created_at,
             },
           ]);
@@ -98,13 +103,24 @@ const SignUpPage = () => {
         console.log(error);
         return;
       }
-    } catch (error: any) {
-      setError(error.message);
-      alert('회원가입 도중 오류가 발생하였습니다. 고객센터로 연락해주세요.');
-      console.error(error);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        setError(error.message);
+        console.error(error);
+      } else {
+        console.error('알 수 없는 에러:', error);
+      }
       setLoading(false);
+      alert('회원가입 도중 오류가 발생하였습니다. 고객센터로 연락해주세요.');
       return;
     }
+  };
+
+  const handleSubmitNickname = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (error.length !== 0) {
+      setError('');
+    }
+    setNickname(e.target.value);
   };
 
   const handleSubmitEmail = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -128,6 +144,14 @@ const SignUpPage = () => {
     setEmailValid(true);
   };
 
+  const handleNicknameFieldClear = () => {
+    setNickname('');
+  };
+
+  const handleUserTypeSelectionChange = (e: any) => {
+    setUserType(e.target.value);
+  };
+
   const toggleVisibility = () => setIsVisible(!isVisible);
 
   return (
@@ -136,7 +160,39 @@ const SignUpPage = () => {
       <form onSubmit={handleSubmitSignUp}>
         <div className='mb-3'>
           <Input
-            isClearable
+            isRequired
+            className='max-w-xs w-full mb-1'
+            style={{ width: '330px' }}
+            type='text'
+            label='Nickname'
+            variant='bordered'
+            value={nickname}
+            onClear={handleNicknameFieldClear}
+            onChange={handleSubmitNickname}
+            placeholder='Enter your nickname'
+          />
+        </div>
+
+        <div className='mb-3'>
+          <Select
+            isRequired
+            className='max-w-xs'
+            label='Type'
+            placeholder='Select your type'
+            defaultSelectedKeys={[]}
+            onChange={handleUserTypeSelectionChange}
+          >
+            {userTypes.map((type) => (
+              <SelectItem key={type} value={type}>
+                {type}
+              </SelectItem>
+            ))}
+          </Select>
+        </div>
+
+        <div className='mb-3'>
+          <Input
+            isRequired
             className='max-w-xs w-full mb-1'
             style={{ width: '330px' }}
             type='email'
@@ -157,6 +213,7 @@ const SignUpPage = () => {
         <div>
           <div className='mb-4'>
             <Input
+              isRequired
               className='max-w-xs w-full mb-1'
               type={isVisible ? 'text' : 'password'}
               label='Password'
@@ -185,6 +242,7 @@ const SignUpPage = () => {
             )}
             {error && <div style={{ color: 'red' }}>{error}</div>}
           </div>
+
           <div className='flex justify-center'></div>
           <Button
             className='w-full max-w-xs'
