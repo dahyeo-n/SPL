@@ -9,6 +9,7 @@ import { useRouter, usePathname } from 'next/navigation';
 
 import { Badge, Button, Switch, Link } from '@nextui-org/react';
 import { NotificationIcon } from './NotificationIcon';
+import { ThemeSwitcher } from '../theme/ThemeSwitcher';
 
 const Navbar: React.FC = () => {
   const [session, setSession] = useState<Session | null>(null);
@@ -55,6 +56,7 @@ const Navbar: React.FC = () => {
       <div>
         {token ? (
           <div className='flex items-center gap-4'>
+            <ThemeSwitcher />
             <Badge
               content='1'
               color='danger'
