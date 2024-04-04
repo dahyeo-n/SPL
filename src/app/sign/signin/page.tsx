@@ -68,6 +68,7 @@ const SignInPage = () => {
 
       setEmail('');
       setPassword('');
+      alert(`오늘도 함께해주셔서 감사해요! 성공적으로 로그인되었어요 :)`);
       router.replace('/');
     } catch (error: any) {
       setError(error.message);
