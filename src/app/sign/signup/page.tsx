@@ -285,20 +285,20 @@ const SignUpPage = () => {
             {error && <div style={{ color: 'red' }}>{error}</div>}
           </div>
 
-          <div className='flex justify-center'></div>
-          <Button
-            className='w-full max-w-xs'
-            type='submit'
-            disabled={loading}
-            color='primary'
-            variant='ghost'
-          >
-            {loading ? '처리 중...' : '회원가입하기'}
-          </Button>
+          <div className='flex justify-center mb-4'>
+            <Button
+              className='w-full max-w-xs'
+              type='submit'
+              disabled={loading}
+              color='primary'
+              variant='ghost'
+            >
+              {loading ? '처리 중...' : '회원가입하기'}
+            </Button>
+          </div>
         </div>
       </form>
-      {/* 로그인 페이지로 이동하는 router 추가 */}
-      {/* <Link href={} /> */}
+      <Link href='/sign/signin'>이미 가입하셨나요? 로그인하러 가기</Link>
     </div>
   );
 };
