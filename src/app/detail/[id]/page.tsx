@@ -35,19 +35,17 @@ const Detail = () => {
   const [studyPlace, setStudyPlace] = useState<StudyPlace | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
-  // 현재 URL에서 place_id 추출
   useEffect(() => {
     const fetchStudyPlaceData = async () => {
       if (!pathname) return;
 
-      // URL에서 place_id 추출 (예: '/detail/2fd15f01-31e0-436a-b544-82d53460ec76')
+      // URL에서 place_id 추출
       const placeId = pathname.split('/')[2];
       console.log('placeId: ', placeId);
 
       try {
         setLoading(true);
 
-        // Supabase에서 해당 place_id를 가진 데이터 가져오기
         let { data, error } = await supabase
           .from('study_places')
           .select('*')
@@ -56,7 +54,6 @@ const Detail = () => {
 
         if (error) throw error;
 
-        // 데이터를 state에 설정
         setStudyPlace(data);
         console.log('data: ', data);
       } catch (error) {
