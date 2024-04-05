@@ -2,9 +2,12 @@
 
 import React, { useEffect, useState } from 'react';
 import supabase from '@/supabaseClient';
+import { Session } from '@supabase/supabase-js';
 
 import Header from '@/components/common/Header';
 import { CustomCard } from '../components/common/CustomCard';
+
+import { useRouter } from 'next/navigation';
 
 import { Spacer } from '@nextui-org/react';
 
@@ -28,6 +31,52 @@ const Main: React.FC = () => {
   const [studyPlaces, setStudyPlaces] = useState<StudyPlace[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [selectedPlaceType, setSelectedPlaceType] = useState<string>('');
+  const [session, setSession] = useState<Session | null>(null);
+  const [nickname, setNickname] = useState<string | null>(null);
+
+  const router = useRouter();
+
+  useEffect(() => {
+    const getUserSession = async () => {
+      try {
+        const { data, error } = await supabase.auth.getSession();
+        if (error) throw error;
+        setSession(data.session);
+        console.log('로그인 데이터: ', data);
+      } catch (error) {
+        alert('Session 처리에 오류가 발생했습니다.');
+        console.log(error);
+      }
+    };
+
+    getUserSession();
+  }, [router]);
+
+  useEffect(() => {
+    if (session?.user && typeof session.user.email === 'string') {
+      fetchUserProfile(session.user.email);
+    }
+  }, [session?.user]);
+
+  const fetchUserProfile = async (email: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .select('nickname')
+        .eq('email', email)
+        .single();
+
+      if (error) {
+        throw error;
+      }
+
+      if (data) {
+        setNickname(data.nickname);
+      }
+    } catch (error) {
+      console.error('사용자 프로필을 불러오는 데 실패했습니다:', error);
+    }
+  };
 
   const fetchStudyPlaces = async (category: string, placeType: string) => {
     let query = supabase
@@ -73,7 +122,8 @@ const Main: React.FC = () => {
       <Header />
       <div>
         <main className='mx-20 lg:px-8'>
-          <div className='flex items-baseline justify-between pb-2 pt-6'>
+          {/* <div className='flex items-baseline justify-between pb-2 pt-6'> */}
+          <div className='flex items-baseline justify-start pb-2 pt-6'>
             <h1 className='text-4xl font-bold tracking-tight text-gray-900 dark:text-gray-200'>
               Categories
             </h1>
@@ -96,6 +146,14 @@ const Main: React.FC = () => {
                 />
               </svg>
             </button> */}
+            <div className='pb-4'>
+              {/* flex items-center justify-start */}
+              <div className='ml-52 text-2xl font-bold text-gray-700 dark:text-gray-300'>
+                {nickname
+                  ? `${nickname}님이 목표와 꿈을 이루시도록 스플이 함께할게요!`
+                  : '3초만에 로그인해서 다양한 서비스를 만나보세요!'}
+              </div>
+            </div>
           </div>
 
           <section aria-labelledby='products-heading' className='pb-24 pt-6'>
