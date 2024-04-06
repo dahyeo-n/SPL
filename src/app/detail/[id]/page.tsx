@@ -52,6 +52,7 @@ interface Comments {
   contents: string;
   created_at: string;
   nickname: string;
+  user_profile_image: string;
 }
 
 const Detail = () => {
@@ -60,6 +61,7 @@ const Detail = () => {
   const [studyPlace, setStudyPlace] = useState<StudyPlace | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [nickname, setNickname] = useState<string | null>(null);
+  const [userProfileImage, setUserProfileImage] = useState<string | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isScrapped, setIsScrapped] = useState(false);
   const [comments, setComments] = useState<Comments[]>([]);
@@ -158,7 +160,7 @@ const Detail = () => {
     try {
       const { data, error } = await supabase
         .from('user_profiles')
-        .select('nickname')
+        .select('nickname, user_profile_image')
         .eq('email', email)
         .single();
 
@@ -168,6 +170,7 @@ const Detail = () => {
 
       if (data) {
         setNickname(data.nickname);
+        setUserProfileImage(data.user_profile_image);
       }
     } catch (error) {
       console.error('사용자 프로필을 불러오는 데 실패했습니다: ', error);
@@ -217,7 +220,7 @@ const Detail = () => {
           study_place_id: studyPlace.place_id,
         });
 
-      console.log('삭제 응답:', data, error);
+      console.log('삭제 응답: ', data, error);
 
       if (error) {
         console.error('스크랩 취소 실패', error);
@@ -249,27 +252,6 @@ const Detail = () => {
     return comment.title.trim() && comment.contents.trim() && comment.rating;
   };
 
-  // studyPlace 데이터를 가져온 후 댓글을 가져오는 로직
-  // useEffect(() => {
-  //   if (studyPlace) {
-  //     fetchComments();
-  //   }
-  // }, [studyPlace]);
-
-  // const fetchComments = async () => {
-  //   try {
-  //     const { data, error } = await supabase
-  //       .from('comments')
-  //       .select('*')
-  //       .eq('study_place_id', studyPlace.place_id);
-
-  //     if (error) throw error;
-  //     setComments(data || []);
-  //   } catch (error) {
-  //     console.error('댓글을 가져오는 중 오류 발생: ', error);
-  //   }
-  // };
-
   const saveComment = async () => {
     if (!isCommentValid()) {
       alert('평점과 댓글 제목과 내용을 모두 입력해주세요.');
@@ -279,12 +261,13 @@ const Detail = () => {
     try {
       const { data, error } = await supabase.from('comments').insert([
         {
-          study_place_id: studyPlace?.place_id,
+          study_place_id: studyPlace.place_id,
           user_id: session?.user.id,
           rating: comment.rating,
           title: comment.title,
           contents: comment.contents,
           nickname,
+          user_profile_image: userProfileImage,
         },
       ]);
 
@@ -425,7 +408,7 @@ const Detail = () => {
                                   isBordered
                                   radius='full'
                                   size='md'
-                                  src='/avatars/avatar-1.png' // 유저 프로필 이미지
+                                  src={comment.user_profile_image}
                                 />
                                 <div className='flex flex-col gap-1 items-start justify-center'>
                                   <h4 className='text-small font-semibold leading-none text-default-600'>
