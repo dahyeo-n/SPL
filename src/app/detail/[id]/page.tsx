@@ -11,7 +11,10 @@ import { CustomDetailCard } from '../../../components/common/CustomDetailCard';
 import {
   Image,
   Card,
+  CardHeader,
   CardBody,
+  CardFooter,
+  Avatar,
   Textarea,
   Radio,
   RadioGroup,
@@ -40,12 +43,26 @@ interface Comment {
   rating: string;
 }
 
+interface Comments {
+  comment_id: string;
+  study_place_id: string;
+  user_id: string;
+  rating: string;
+  title: string;
+  contents: string;
+  created_at: string;
+  nickname: string;
+}
+
 const Detail = () => {
+  const [isFollowed, setIsFollowed] = React.useState(false);
+
   const [studyPlace, setStudyPlace] = useState<StudyPlace | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [nickname, setNickname] = useState<string | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isScrapped, setIsScrapped] = useState(false);
+  const [comments, setComments] = useState<Comments[]>([]);
 
   const [comment, setComment] = useState<Comment>({
     title: '',
@@ -87,15 +104,33 @@ const Detail = () => {
 
         setStudyPlace(data);
         console.log('data: ', data);
+        // fetchComments();
+
+        if (data) {
+          try {
+            const { data, error } = await supabase
+              .from('comments')
+              .select('*')
+              .eq('study_place_id', placeId);
+
+            if (error) throw error;
+            setComments(data || []);
+          } catch (error) {
+            console.error('댓글을 가져오는 중 오류 발생: ', error);
+          }
+        }
       } catch (error) {
-        console.error('Failed to fetch study place details:', error);
+        console.error(
+          '공부 장소 상세정보를 가져오는 데 실패하였습니다: ',
+          error
+        );
       } finally {
         setLoading(false);
       }
     };
 
     fetchStudyPlaceData();
-  }, [pathname]);
+  }, []);
 
   useEffect(() => {
     const getUserSession = async () => {
@@ -135,7 +170,7 @@ const Detail = () => {
         setNickname(data.nickname);
       }
     } catch (error) {
-      console.error('사용자 프로필을 불러오는 데 실패했습니다:', error);
+      console.error('사용자 프로필을 불러오는 데 실패했습니다: ', error);
     }
   };
 
@@ -214,57 +249,90 @@ const Detail = () => {
     return comment.title.trim() && comment.contents.trim() && comment.rating;
   };
 
+  // studyPlace 데이터를 가져온 후 댓글을 가져오는 로직
+  // useEffect(() => {
+  //   if (studyPlace) {
+  //     fetchComments();
+  //   }
+  // }, [studyPlace]);
+
+  // const fetchComments = async () => {
+  //   try {
+  //     const { data, error } = await supabase
+  //       .from('comments')
+  //       .select('*')
+  //       .eq('study_place_id', studyPlace.place_id);
+
+  //     if (error) throw error;
+  //     setComments(data || []);
+  //   } catch (error) {
+  //     console.error('댓글을 가져오는 중 오류 발생: ', error);
+  //   }
+  // };
+
   const saveComment = async () => {
     if (!isCommentValid()) {
-      alert('평점과 댓글 제목과 내용을 모두 입력해 주세요.');
+      alert('평점과 댓글 제목과 내용을 모두 입력해주세요.');
       return;
     }
 
-    const { data, error } = await supabase.from('comments').insert([
-      {
-        study_place_id: studyPlace?.place_id,
-        user_id: session?.user.id,
-        rating: comment.rating,
-        title: comment.title,
-        contents: comment.contents,
-        nickname, // nickname state에 저장된 값을 사용
-      },
-    ]);
+    try {
+      const { data, error } = await supabase.from('comments').insert([
+        {
+          study_place_id: studyPlace?.place_id,
+          user_id: session?.user.id,
+          rating: comment.rating,
+          title: comment.title,
+          contents: comment.contents,
+          nickname,
+        },
+      ]);
 
-    if (error) {
-      alert('댓글을 저장하는 데 실패했습니다.');
-      console.error('Error saving comment:', error);
-    } else {
-      console.log('Comment saved successfully:', data);
-      // 댓글이 성공적으로 저장된 후에는 comment state를 초기화
+      if (error) {
+        alert('댓글을 저장하는 데 실패했습니다.');
+        console.error('Error saving comment: ', error);
+      } else if (data) {
+        setComments((currentComments) => [...currentComments, ...data[0]]);
+      }
+
       setComment({ title: '', contents: '', rating: '' });
+      console.log('Comment saved successfully: ', data);
+    } catch (error) {
+      alert('댓글을 저장하는 데 실패했습니다.');
+      console.error('Error saving comment: ', error);
     }
+  };
+
+  const formatDateTime = (dateString: string): string => {
+    const date = new Date(dateString);
+    const year = date.getFullYear();
+    let month = date.getMonth() + 1; // getMonth()는 0부터 시작하기 때문에 +1
+    let day = date.getDate();
+    let hours = date.getHours();
+    let minutes = date.getMinutes();
+
+    // 한 자리 수일 경우 앞에 0을 붙여서 두 자리 수로 만듦
+    const formattedMonth = month < 10 ? `0${month}` : month.toString();
+    const formattedDay = day < 10 ? `0${day}` : day.toString();
+    const formattedHours = hours < 10 ? `0${hours}` : hours.toString();
+    const formattedMinutes = minutes < 10 ? `0${minutes}` : minutes.toString();
+
+    return `${year}-${formattedMonth}-${formattedDay} ${formattedHours}:${formattedMinutes}`;
   };
 
   return (
     <>
       <div className='flex justify-center w-full overflow-hidden mb-8'>
-        <Image
-          width={500}
-          height={200}
-          alt='Study Place Detail Image'
-          src={studyPlace.photo_url}
-        />
+        <div
+          className='h-96 rounded-lg bg-cover bg-center bg-no-repeat w-[1000px] p-4 mx-2'
+          style={{ backgroundImage: `url(${studyPlace.photo_url})` }}
+        ></div>
       </div>
       <div>
         <main className='mx-20 lg:px-8'>
-          <div className='pb-4'>
-            {/* <div className='ml-52 text-2xl font-bold text-gray-700 dark:text-gray-300'>
-                {nickname
-                  ? `${nickname}님이 목표와 꿈을 이루시도록 스플이 함께할게요!`
-                  : '3초만에 로그인해서 다양한 서비스를 만나보세요!'}
-              </div> */}
-          </div>
-
           <section aria-labelledby='products-heading' className='pb-24 pt-6'>
-            <div className='grid grid-rows-3 grid-flow-col gap-4'>
-              {/* <form className='hidden lg:block'> */}
-              <div className='row-span-3 space-y-6 pb-8 text-xl font-medium text-gray-900 dark:text-gray-200'>
+            <div className='grid grid-cols-1 lg:grid-cols-12 gap-4'>
+              <div className='lg:col-span-4 row-span-3 space-y-6 pb-8 text-xl font-medium text-gray-900 dark:text-gray-200'>
                 <React.Fragment>
                   <CustomDetailCard
                     place={studyPlace}
@@ -274,45 +342,31 @@ const Detail = () => {
                   />
                 </React.Fragment>
               </div>
-              <div>
-                <div className='text-4xl font-bold tracking-tight text-gray-900 dark:text-gray-200'>
-                  No comments
-                </div>
-                <Card>
-                  <CardBody>
-                    <p>
-                      아쉽게도 아직 작성된 리뷰가 없네요! 가장 먼저 리뷰를
-                      달아주세요 :)
-                    </p>
-                  </CardBody>
-                </Card>
-              </div>
 
-              <div>
-                <div className='text-4xl font-bold tracking-tight text-gray-900 dark:text-gray-200'>
-                  댓글 쓰기
-                </div>
-                <Card className='w-[480px] p-6'>
-                  <div className='space-y-1 pt-2'>
-                    <div className='text-xl font-bold mb-4'>
-                      {studyPlace.place_name}에 대한 의견을 남겨주세요 :)
+              <div className='lg:col-span-8 ml-12'>
+                <Card className='p-6 w-full'>
+                  <div className='space-y-5'>
+                    <div className='text-2xl font-bold mb-4'>
+                      [{studyPlace.place_name}] 댓글 작성
                     </div>
 
-                    <RadioGroup
-                      value={comment.rating}
-                      onChange={(e) => {
-                        const selectedRating = e.target.value;
-                        handleRatingChange(selectedRating);
-                      }}
-                      label='별점 선택'
-                      className='col-span-12 md:col-span-6 mb-6 md:mb-0 font-bold'
-                    >
-                      {ratings.map((rating, index) => (
-                        <Radio key={index} value={rating}>
-                          {rating}
-                        </Radio>
-                      ))}
-                    </RadioGroup>
+                    <div className='my-16'>
+                      <RadioGroup
+                        className='col-span-12 md:col-span-6 md:mb-0 font-bold'
+                        value={comment.rating}
+                        onChange={(e) => {
+                          const selectedRating = e.target.value;
+                          handleRatingChange(selectedRating);
+                        }}
+                        label='별점 선택'
+                      >
+                        {ratings.map((rating, index) => (
+                          <Radio key={index} value={rating}>
+                            {rating}
+                          </Radio>
+                        ))}
+                      </RadioGroup>
+                    </div>
 
                     <Textarea
                       name='title'
@@ -338,6 +392,7 @@ const Detail = () => {
                       className='col-span-12 md:col-span-6 mb-6 md:mb-0 font-bold'
                     />
                     <Button
+                      className='w-full'
                       color='primary'
                       variant='shadow'
                       onPress={saveComment}
@@ -348,22 +403,88 @@ const Detail = () => {
                 </Card>
               </div>
 
-              <div>
-                <div className='text-4xl font-bold tracking-tight text-gray-900 dark:text-gray-200'>
-                  작성된 리뷰
-                </div>
-                <Card className='w-[480px] p-6'>
-                  <div className='space-y-1 pt-2'>
-                    <div className='text-xl font-bold mb-4'>작성된 댓글</div>
-                    <Textarea
-                      isReadOnly
-                      label='Description'
-                      variant='bordered'
-                      labelPlacement='outside'
-                      placeholder='Enter your description'
-                      defaultValue='NextUI is a React UI library that provides a set of accessible, reusable, and beautiful components.'
-                      className='max-w-xs'
-                    />
+              <div className='lg:col-span-12 ml-2'>
+                <Card className='w-full p-6 pb-8'>
+                  <div className='space-y-1 pt-2 mx-2'>
+                    <div className='text-2xl font-bold mb-7'>작성된 댓글</div>
+                    <div className='flex flex-wrap gap-4'>
+                      {comments.length > 0 ? (
+                        comments.map((comment, index) => (
+                          <Card
+                            key={comment.comment_id || index}
+                            className='w-full max-w-[340px]'
+                          >
+                            <CardHeader className='justify-between'>
+                              <div className='flex gap-5'>
+                                <Avatar
+                                  isBordered
+                                  radius='full'
+                                  size='md'
+                                  src='/avatars/avatar-1.png' // 유저 프로필 이미지
+                                />
+                                <div className='flex flex-col gap-1 items-start justify-center'>
+                                  <h4 className='text-small font-semibold leading-none text-default-600'>
+                                    {comment.nickname}
+                                  </h4>
+                                  <h5 className='text-small tracking-tight text-default-400'>
+                                    {comment.rating}
+                                  </h5>
+                                </div>
+                              </div>
+                              <Button
+                                className={
+                                  isFollowed
+                                    ? 'bg-transparent text-foreground border-default-200'
+                                    : ''
+                                }
+                                color='primary'
+                                radius='full'
+                                size='sm'
+                                variant={isFollowed ? 'bordered' : 'solid'}
+                                onPress={() => setIsFollowed(!isFollowed)}
+                              >
+                                {isFollowed ? 'Unfollow' : 'Follow'}
+                              </Button>
+                            </CardHeader>
+                            <CardBody className='m-2 px-3 py-0'>
+                              <p className='text-ml font-bold'>
+                                {comment.title}
+                              </p>
+                              <span className='pt-2'>{comment.contents}</span>
+                            </CardBody>
+                            <CardFooter className='gap-3'>
+                              <div className='flex gap-1'>
+                                {/* <p className='font-semibold text-default-400 text-small'>
+                                4
+                              </p>
+                              <p className=' text-default-400 text-small'>
+                                Following
+                              </p>
+                            </div>
+                            <div className='flex gap-1'>
+                              <p className='font-semibold text-default-400 text-small'>
+                                97.1K
+                              </p>
+                              <p className='text-default-400 text-small'>
+                                Followers
+                              </p> */}
+
+                                <p className='text-default-400 text-small'>
+                                  {formatDateTime(comment.created_at)}
+                                </p>
+                              </div>
+                            </CardFooter>
+                          </Card>
+                        ))
+                      ) : (
+                        <div>
+                          <p className='text-xl'>
+                            아쉽게도 아직 작성된 리뷰가 없네요! 가장 먼저 리뷰를
+                            달아주세요 :)
+                          </p>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </Card>
               </div>

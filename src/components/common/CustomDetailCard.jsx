@@ -13,10 +13,10 @@ export const CustomDetailCard = ({ place, isScrapped, onScrap, onUnscrap }) => {
   };
 
   return (
-    <Card className='w-[500px] p-4 mx-2 mb-10' radius='2xl'>
-      <div className='space-y-1 pt-2'>
+    <Card className='w-full p-4 mx-2 mb-10 pb-7' radius='2xl'>
+      <div className='space-y-2'>
         <CardHeader className='justify-between'>
-          <div className='text-4xl font-bold mb-4'>{place.place_name}</div>
+          <div className='text-3xl font-bold'>{place.place_name}</div>
           <Button
             className={
               isScrapped
@@ -60,13 +60,15 @@ export const CustomDetailCard = ({ place, isScrapped, onScrap, onUnscrap }) => {
             )}
           </Button>
         </CardHeader>
-        <div className='text-lg'>[평점] {place.rating ?? '없음'}</div>
-        <div className='text-lg'>[위치] {place.place_name}</div>
-        <div className='text-lg'>[운영시간] {place.operating_hours}</div>
-        <div className='text-lg'>[연락처] {place.contact}</div>
-        <div className='text-lg'>[이용료] {place.fee ?? '없음'}</div>
-        <div className='text-lg'>[Site URL] {place.website_url ?? '없음'}</div>
-        <div className='text-lg'>[비고] {place.notes ?? '없음'}</div>
+        <div className='text-lg ml-3'>[평점] {place.rating ?? '없음'}</div>
+        <div className='text-lg ml-3'>[위치] {place.place_name}</div>
+        <div className='text-lg ml-3'>[운영시간] {place.operating_hours}</div>
+        <div className='text-lg ml-3'>[연락처] {place.contact}</div>
+        <div className='text-lg ml-3'>[이용료] {place.fee ?? '없음'}</div>
+        <div className='text-lg ml-3'>
+          [Site URL] {place.website_url ?? '없음'}
+        </div>
+        <div className='text-lg ml-3'>[비고] {place.notes ?? '없음'}</div>
       </div>
     </Card>
   );
