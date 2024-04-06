@@ -13,7 +13,8 @@ import {
   Card,
   CardBody,
   Textarea,
-  Checkbox,
+  Radio,
+  RadioGroup,
   Button,
 } from '@nextui-org/react';
 
@@ -33,12 +34,32 @@ interface StudyPlace {
   notes: string;
 }
 
+interface Comment {
+  title: string;
+  contents: string;
+  rating: string;
+}
+
 const Detail = () => {
   const [studyPlace, setStudyPlace] = useState<StudyPlace | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [nickname, setNickname] = useState<string | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isScrapped, setIsScrapped] = useState(false);
+
+  const [comment, setComment] = useState<Comment>({
+    title: '',
+    contents: '',
+    rating: '',
+  });
+
+  const ratings = [
+    '⭐️',
+    '⭐️⭐️',
+    '⭐️⭐️⭐️',
+    '⭐️⭐️⭐️⭐️',
+    '⭐️⭐️⭐️⭐️⭐️',
+  ];
 
   const router = useRouter();
 
@@ -118,7 +139,7 @@ const Detail = () => {
     }
   };
 
-  // 스터디 장소의 스크랩 여부를 확인하는 함수
+  // 공부 장소의 스크랩 여부 확인
   const checkScrapStatus = async () => {
     if (session && studyPlace) {
       const { data, error } = await supabase
@@ -132,7 +153,7 @@ const Detail = () => {
     }
   };
 
-  // 스크랩 추가 함수
+  // 스크랩 추가
   const addScrap = async () => {
     if (session && studyPlace && !isScrapped) {
       const { data, error } = await supabase
@@ -150,7 +171,7 @@ const Detail = () => {
     }
   };
 
-  // 스크랩 취소 함수
+  // 스크랩 취소
   const removeScrap = async () => {
     if (session && studyPlace && isScrapped) {
       const { data, error } = await supabase
@@ -179,6 +200,46 @@ const Detail = () => {
 
   if (loading) return <p>Loading...</p>;
   if (!studyPlace) return <p>No study place found</p>;
+
+  const handleRatingChange = (selectedRating: any) => {
+    setComment((prevComment) => ({ ...prevComment, rating: selectedRating }));
+  };
+
+  const handleCommentInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setComment((prevComment) => ({ ...prevComment, [name]: value }));
+  };
+
+  const isCommentValid = () => {
+    return comment.title.trim() && comment.contents.trim() && comment.rating;
+  };
+
+  const saveComment = async () => {
+    if (!isCommentValid()) {
+      alert('평점과 댓글 제목과 내용을 모두 입력해 주세요.');
+      return;
+    }
+
+    const { data, error } = await supabase.from('comments').insert([
+      {
+        study_place_id: studyPlace?.place_id,
+        user_id: session?.user.id,
+        rating: comment.rating,
+        title: comment.title,
+        contents: comment.contents,
+        nickname, // nickname state에 저장된 값을 사용
+      },
+    ]);
+
+    if (error) {
+      alert('댓글을 저장하는 데 실패했습니다.');
+      console.error('Error saving comment:', error);
+    } else {
+      console.log('Comment saved successfully:', data);
+      // 댓글이 성공적으로 저장된 후에는 comment state를 초기화
+      setComment({ title: '', contents: '', rating: '' });
+    }
+  };
 
   return (
     <>
@@ -237,28 +298,50 @@ const Detail = () => {
                       {studyPlace.place_name}에 대한 의견을 남겨주세요 :)
                     </div>
 
-                    <Checkbox defaultSelected radius='sm'>
-                      ⭐️⭐️⭐️⭐️⭐️
-                    </Checkbox>
+                    <RadioGroup
+                      value={comment.rating}
+                      onChange={(e) => {
+                        const selectedRating = e.target.value;
+                        handleRatingChange(selectedRating);
+                      }}
+                      label='별점 선택'
+                      className='col-span-12 md:col-span-6 mb-6 md:mb-0 font-bold'
+                    >
+                      {ratings.map((rating, index) => (
+                        <Radio key={index} value={rating}>
+                          {rating}
+                        </Radio>
+                      ))}
+                    </RadioGroup>
 
                     <Textarea
+                      name='title'
                       key='faded'
                       variant='faded'
                       label='Title'
                       labelPlacement='outside'
+                      value={comment.title}
+                      onChange={handleCommentInputChange}
                       placeholder='Enter the title'
                       className='col-span-12 md:col-span-6 mb-6 md:mb-0 font-bold'
                     />
 
                     <Textarea
+                      name='contents'
                       key='faded'
                       variant='faded'
-                      label='Comments'
+                      label='Contents'
                       labelPlacement='outside'
-                      placeholder='Enter the comments'
+                      value={comment.contents}
+                      onChange={handleCommentInputChange}
+                      placeholder='Enter the contents'
                       className='col-span-12 md:col-span-6 mb-6 md:mb-0 font-bold'
                     />
-                    <Button color='primary' variant='shadow'>
+                    <Button
+                      color='primary'
+                      variant='shadow'
+                      onPress={saveComment}
+                    >
                       작성하기
                     </Button>
                   </div>
