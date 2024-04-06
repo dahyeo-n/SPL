@@ -43,11 +43,7 @@ const MyPageLayout = ({ children }: { children: React.ReactNode }) => {
     };
   }, [router]);
 
-  return (
-    <div className='p-7 pt-10 mt-5 mx-auto w-2/5 min-w-96 rounded-lg shadow-lg shadow-gray-500/50'>
-      {shouldRender && children}
-    </div>
-  );
+  return <div>{shouldRender && children}</div>;
 };
 
 export default MyPageLayout;
