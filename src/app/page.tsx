@@ -5,7 +5,7 @@ import supabase from '@/supabaseClient';
 import { Session } from '@supabase/supabase-js';
 
 import Header from '@/components/common/Header';
-import { CustomCard } from '../components/common/CustomCard';
+import { CustomMainCard } from '../components/common/CustomMainCard';
 
 import { useRouter } from 'next/navigation';
 
@@ -244,7 +244,17 @@ const Main: React.FC = () => {
                 <div className='flex flex-wrap'>
                   {studyPlaces.map((place) => (
                     <React.Fragment key={place.id}>
-                      <CustomCard place={place} />
+                      <div
+                        className='cursor-pointer transform transition duration-300 ease-in-out hover:scale-105'
+                        onClick={() => router.push(`/detail/${place.place_id}`)}
+                      >
+                        <CustomMainCard
+                          place={place}
+                          onCardClick={(id: string) =>
+                            router.push(`/detail/${id}`)
+                          }
+                        />
+                      </div>
                       <Spacer x={4} />
                     </React.Fragment>
                   ))}
