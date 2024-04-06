@@ -89,6 +89,8 @@ const SignUpPage = () => {
       console.log('회원가입 처리 후, 확인 데이터 => ', data.user);
 
       if (data.user && data.user.id) {
+        const defaultProfileImagePath = '/images/default-profile.jpg';
+
         const { error: insertError } = await supabase
           .from('user_profiles')
           .insert([
@@ -98,6 +100,7 @@ const SignUpPage = () => {
               email: data.user.email,
               user_type: userType,
               created_at: data.user.created_at,
+              user_profile_image: defaultProfileImagePath,
             },
           ]);
 
