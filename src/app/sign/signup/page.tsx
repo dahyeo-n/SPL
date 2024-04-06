@@ -88,8 +88,6 @@ const SignUpPage = () => {
 
       console.log('회원가입 처리 후, 확인 데이터 => ', data.user);
 
-      // 이거 user_profiles key에 맞게 변경해야 함. 테이블명, 닉네임, 유형 변경해야 함
-      // data console로 찍어보기
       if (data.user && data.user.id) {
         const { error: insertError } = await supabase
           .from('user_profiles')
@@ -100,6 +98,7 @@ const SignUpPage = () => {
               email: data.user.email,
               user_type: userType,
               created_at: data.user.created_at,
+              user_profile_image: '/images/default-profile.jpg',
             },
           ]);
 
