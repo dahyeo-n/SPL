@@ -346,9 +346,9 @@ const Detail = () => {
                 </React.Fragment>
               </div>
 
-              <div className='lg:col-span-8 ml-12'>
+              <div className='lg:col-span-8 ml-24'>
                 <Card className='p-6 w-full'>
-                  <div className='space-y-5'>
+                  <div className='space-y-5 pb-2'>
                     <div className='text-2xl font-bold mb-4'>
                       [{studyPlace.place_name}] 댓글 작성
                     </div>
@@ -363,11 +363,13 @@ const Detail = () => {
                         }}
                         label='별점 선택'
                       >
-                        {ratings.map((rating, index) => (
-                          <Radio key={index} value={rating}>
-                            {rating}
-                          </Radio>
-                        ))}
+                        <div className='flex flex-wrap space-x-3'>
+                          {ratings.map((rating, index) => (
+                            <Radio key={index} value={rating}>
+                              {rating}
+                            </Radio>
+                          ))}
+                        </div>
                       </RadioGroup>
                     </div>
 
@@ -408,7 +410,7 @@ const Detail = () => {
 
               <div className='lg:col-span-12 ml-2'>
                 <Card className='w-full p-6 pb-8'>
-                  <div className='space-y-1 pt-2 mx-2'>
+                  <div className='space-y-1 py-2 mx-2'>
                     <div className='text-2xl font-bold mb-7'>작성된 댓글</div>
                     <div className='flex flex-wrap gap-4'>
                       {comments.length > 0 ? (
