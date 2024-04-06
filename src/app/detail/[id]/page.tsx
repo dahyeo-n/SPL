@@ -324,8 +324,11 @@ const Detail = () => {
     <>
       <div className='flex justify-center w-full overflow-hidden mb-8'>
         <div
-          className='h-96 rounded-lg bg-cover bg-center bg-no-repeat w-[1000px] p-4 mx-2'
-          style={{ backgroundImage: `url(${studyPlace.photo_url})` }}
+          className='rounded-lg bg-cover bg-center bg-no-repeat w-[1000px] p-4 mx-2'
+          style={{
+            height: '500px',
+            backgroundImage: `url(${studyPlace.photo_url})`,
+          }}
         ></div>
       </div>
       <div>
