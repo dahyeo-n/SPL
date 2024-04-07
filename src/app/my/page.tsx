@@ -286,12 +286,18 @@ const My: React.FC = () => {
                   </button>
                 </div>
                 <div>
-                  <button onClick={() => handleCategorySelection('scrapped')}>
+                  <button
+                    className='font-medium text-gray-400 dark:text-gray-500'
+                    onClick={() => handleCategorySelection('scrapped')}
+                  >
                     내가 스크랩한 장소
                   </button>
                 </div>
                 <div>
-                  <button onClick={() => handleCategorySelection('comments')}>
+                  <button
+                    className='font-medium text-gray-400 dark:text-gray-500'
+                    onClick={() => handleCategorySelection('comments')}
+                  >
                     내가 작성한 댓글
                   </button>
                 </div>
@@ -364,7 +370,10 @@ const My: React.FC = () => {
             <div className='grid grid-cols-1 gap-x-8 gap-y-10 lg:grid-cols-4'>
               <div className='lg:col-span-1 mt-2 space-y-6 pb-8 text-xl font-medium text-gray-900 dark:text-gray-200'>
                 <div>
-                  <button onClick={() => handleCategorySelection('profile')}>
+                  <button
+                    className='font-medium text-gray-400 dark:text-gray-500'
+                    onClick={() => handleCategorySelection('profile')}
+                  >
                     내 프로필 정보
                   </button>
                 </div>
@@ -374,7 +383,10 @@ const My: React.FC = () => {
                   </button>
                 </div>
                 <div>
-                  <button onClick={() => handleCategorySelection('comments')}>
+                  <button
+                    className='font-medium text-gray-400 dark:text-gray-500'
+                    onClick={() => handleCategorySelection('comments')}
+                  >
                     내가 작성한 댓글
                   </button>
                 </div>
@@ -423,12 +435,18 @@ const My: React.FC = () => {
             <div className='grid grid-cols-1 gap-x-8 gap-y-10 lg:grid-cols-4'>
               <div className='lg:col-span-1 mt-2 space-y-6 pb-8 text-xl font-medium text-gray-900 dark:text-gray-200'>
                 <div>
-                  <button onClick={() => handleCategorySelection('profile')}>
+                  <button
+                    className='font-medium text-gray-400 dark:text-gray-500'
+                    onClick={() => handleCategorySelection('profile')}
+                  >
                     내 프로필 정보
                   </button>
                 </div>
                 <div>
-                  <button onClick={() => handleCategorySelection('scrapped')}>
+                  <button
+                    className='font-medium text-gray-400 dark:text-gray-500'
+                    onClick={() => handleCategorySelection('scrapped')}
+                  >
                     내가 스크랩한 장소
                   </button>
                 </div>
