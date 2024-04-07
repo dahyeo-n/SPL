@@ -19,6 +19,11 @@ const My: React.FC = () => {
   // const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [session, setSession] = useState<Session | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [updatedNickname, setUpdatedNickname] = useState<string>('');
+  const [updatedEmail, setUpdatedEmail] = useState<string>('');
+  const [updatedUserType, setUpdatedUserType] = useState<string>('');
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [profileImage, setProfileImage] = useState<string>('');
 
   const router = useRouter();
 
@@ -53,11 +58,70 @@ const My: React.FC = () => {
         .single();
 
       if (error) throw error;
+
       setUserProfile(data);
+      setUpdatedNickname(data.nickname);
+      setUpdatedEmail(data.email);
+      setUpdatedUserType(data.user_type);
+      setProfileImage(data.user_profile_image);
     } catch (error) {
       console.error('사용자 프로필을 불러오는 데 실패했습니다: ', error);
     }
   };
+
+  const updateUserProfile = async () => {
+    const { error } = await supabase
+      .from('user_profiles')
+      .update({
+        nickname: updatedNickname,
+        email: updatedEmail,
+        user_type: updatedUserType,
+        user_profile_image: profileImage,
+      })
+      .eq('user_uid', session?.user?.id);
+
+    if (error) {
+      console.error('프로필 업데이트에 실패했습니다: ', error);
+    } else {
+      alert('프로필이 성공적으로 업데이트되었습니다!');
+      fetchUserProfile(session?.user?.id!);
+    }
+  };
+
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files?.[0]) {
+      setImageFile(e.target.files[0]);
+    }
+  };
+
+  const uploadProfileImage = async () => {
+    if (!imageFile || !session?.user) return;
+
+    const fileExt = imageFile.name.split('.').pop();
+    const fileName = `${session.user.id}/${Math.random()}.${fileExt}`;
+
+    const { error } = await supabase.storage
+      .from('user_avatars')
+      .upload(fileName, imageFile);
+
+    if (error) {
+      console.error('이미지 업로드에 실패했습니다:', error);
+      return;
+    }
+
+    const projectStorageUrl = `https://${process.env.NEXT_PUBLIC_SUPABASE_PROJECT_ID}.supabase.co/storage/v1`;
+    const url = `${projectStorageUrl}/object/public/user_avatars/${encodeURIComponent(
+      fileName
+    )}`;
+
+    setProfileImage(url);
+  };
+
+  useEffect(() => {
+    if (imageFile) {
+      uploadProfileImage();
+    }
+  }, [imageFile]);
 
   // useEffect(() => {
   //   fetchStudyPlaces(selectedCategory, selectedPlaceType);
@@ -74,29 +138,6 @@ const My: React.FC = () => {
   //   setSelectedCategory('');
   //   fetchStudyPlaces('', placeType);
   // };
-
-  const handleUserProfileInputChange = (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const { name, value } = e.target;
-    setUserProfile((prev) => ({ ...prev!, [name]: value }));
-  };
-
-  const updateUserProfile = async () => {
-    const { data, error } = await supabase
-      .from('user_profiles')
-      .update({
-        nickname: userProfile?.nickname,
-        user_profile_image: userProfile?.user_profile_image,
-      })
-      .eq('user_uid', session?.user?.id);
-
-    if (error) {
-      console.error('프로필 업데이트에 실패했습니다: ', error);
-    } else {
-      alert('프로필이 성공적으로 업데이트되었습니다!');
-    }
-  };
 
   return (
     <>
@@ -143,45 +184,47 @@ const My: React.FC = () => {
                   <div
                     className='rounded-lg bg-cover bg-center bg-no-repeat w-[300px] h-[300px] p-4'
                     style={{
-                      backgroundImage: `url(${userProfile?.user_profile_image})`,
+                      backgroundImage: `url(${
+                        profileImage || '/default-profile.png'
+                      })`,
                     }}
                   ></div>
                 </div>
                 <input
                   className='mt-1 block w-[300px] px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500'
                   name='user_profile_image'
-                  value={userProfile?.user_profile_image || ''}
-                  onChange={handleUserProfileInputChange}
+                  type='file'
+                  onChange={handleImageChange}
                 />
                 <button
                   className=' w-[300px] mt-2 px-4 py-2 bg-blue-500 text-white rounded-md'
-                  onClick={updateUserProfile}
+                  onClick={() => imageFile && uploadProfileImage()}
                 >
                   이미지 변경하기
                 </button>
               </div>
               <div className='lg:col-span-2'>
                 <div className='w-full grid grid-cols-1 md:grid-cols-2 gap-4 flex flex-wrap'>
-                  <div className='text-2xl font-bold ml-3'>닉네임</div>
+                  <label className='text-2xl font-bold ml-3'>닉네임</label>
                   <input
                     className='mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500'
                     name='nickname'
-                    value={userProfile?.nickname || ''}
-                    onChange={handleUserProfileInputChange}
+                    value={updatedNickname}
+                    onChange={(e) => setUpdatedNickname(e.target.value)}
                   />
-                  <div className='text-2xl font-bold ml-3'>이메일</div>
+                  <label className='text-2xl font-bold ml-3'>이메일</label>
                   <input
                     className='mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500'
                     name='email'
-                    value={userProfile?.email}
-                    onChange={handleUserProfileInputChange}
+                    value={updatedEmail}
+                    onChange={(e) => setUpdatedEmail(e.target.value)}
                   />
-                  <div className='text-2xl font-bold ml-3'>유형</div>
+                  <label className='text-2xl font-bold ml-3'>유형</label>
                   <input
                     className='mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500'
-                    name='nickname'
-                    value={userProfile?.user_type}
-                    onChange={handleUserProfileInputChange}
+                    name='user_type'
+                    value={updatedUserType}
+                    onChange={(e) => setUpdatedUserType(e.target.value)}
                   />
                 </div>
               </div>
