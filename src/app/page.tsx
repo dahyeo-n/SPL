@@ -95,7 +95,7 @@ const Main: React.FC = () => {
     const { data, error } = await query;
 
     if (error) {
-      console.error('데이터를 불러오는 데 실패했습니다:', error);
+      console.error('데이터를 불러오는 데 실패했습니다: ', error);
     } else {
       setStudyPlaces(data || []);
     }
@@ -162,13 +162,20 @@ const Main: React.FC = () => {
                 <h3 className='sr-only'>Categories</h3>
                 <div className='space-y-6 pb-8 text-xl font-medium text-gray-900 dark:text-gray-200'>
                   {/* 필터 처리 로직 완성되면 map으로 돌릴 거임 */}
-                  <div>
-                    <button>추천</button>
-                  </div>
+                  <div>{/* <button>추천</button> */}</div>
                   <div>
                     <button
                       type='button'
-                      onClick={() => handleCategorySelection('')}
+                      onClick={() => {
+                        setSelectedCategory('');
+                        setSelectedPlaceType('');
+                        fetchStudyPlaces('', '');
+                      }}
+                      className={`${
+                        selectedCategory === '' && selectedPlaceType === ''
+                          ? 'text-gray-900 dark:text-gray-200'
+                          : 'text-gray-400 dark:text-gray-500'
+                      }`}
                     >
                       전체
                     </button>
@@ -177,6 +184,11 @@ const Main: React.FC = () => {
                     <button
                       type='button'
                       onClick={() => handlePlaceTypeSelection('스터디룸')}
+                      className={`${
+                        selectedPlaceType === '스터디룸'
+                          ? 'text-gray-900 dark:text-gray-200'
+                          : 'text-gray-400 dark:text-gray-500'
+                      }`}
                     >
                       스터디룸
                     </button>
@@ -185,6 +197,11 @@ const Main: React.FC = () => {
                     <button
                       type='button'
                       onClick={() => handlePlaceTypeSelection('스터디카페')}
+                      className={`${
+                        selectedPlaceType === '스터디카페'
+                          ? 'text-gray-900 dark:text-gray-200'
+                          : 'text-gray-400 dark:text-gray-500'
+                      }`}
                     >
                       스터디카페
                     </button>
@@ -193,6 +210,11 @@ const Main: React.FC = () => {
                     <button
                       type='button'
                       onClick={() => handlePlaceTypeSelection('일반카페')}
+                      className={`${
+                        selectedPlaceType === '일반카페'
+                          ? 'text-gray-900 dark:text-gray-200'
+                          : 'text-gray-400 dark:text-gray-500'
+                      }`}
                     >
                       일반카페
                     </button>
@@ -201,6 +223,11 @@ const Main: React.FC = () => {
                     <button
                       type='button'
                       onClick={() => handlePlaceTypeSelection('북카페')}
+                      className={`${
+                        selectedPlaceType === '북카페'
+                          ? 'text-gray-900 dark:text-gray-200'
+                          : 'text-gray-400 dark:text-gray-500'
+                      }`}
                     >
                       북카페
                     </button>
@@ -209,6 +236,11 @@ const Main: React.FC = () => {
                     <button
                       type='button'
                       onClick={() => handleCategorySelection('노트북 이용')}
+                      className={`${
+                        selectedCategory === '노트북 이용'
+                          ? 'text-gray-900 dark:text-gray-200'
+                          : 'text-gray-400 dark:text-gray-500'
+                      }`}
                     >
                       노트북 이용
                     </button>
@@ -217,6 +249,11 @@ const Main: React.FC = () => {
                     <button
                       type='button'
                       onClick={() => handleCategorySelection('조용하고 한적한')}
+                      className={`${
+                        selectedCategory === '조용하고 한적한'
+                          ? 'text-gray-900 dark:text-gray-200'
+                          : 'text-gray-400 dark:text-gray-500'
+                      }`}
                     >
                       조용하고 한적한
                     </button>
@@ -225,6 +262,11 @@ const Main: React.FC = () => {
                     <button
                       type='button'
                       onClick={() => handleCategorySelection('세련되고 깔끔한')}
+                      className={`${
+                        selectedCategory === '세련되고 깔끔한'
+                          ? 'text-gray-900 dark:text-gray-200'
+                          : 'text-gray-400 dark:text-gray-500'
+                      }`}
                     >
                       세련되고 깔끔한
                     </button>
@@ -233,6 +275,11 @@ const Main: React.FC = () => {
                     <button
                       type='button'
                       onClick={() => handleCategorySelection('뷰 맛집')}
+                      className={`${
+                        selectedCategory === '뷰 맛집'
+                          ? 'text-gray-900 dark:text-gray-200'
+                          : 'text-gray-400 dark:text-gray-500'
+                      }`}
                     >
                       뷰 맛집
                     </button>
