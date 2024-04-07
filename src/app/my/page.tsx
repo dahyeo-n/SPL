@@ -7,7 +7,15 @@ import { Session } from '@supabase/supabase-js';
 import { CustomMainCard } from '../../components/common/CustomMainCard';
 import { useRouter } from 'next/navigation';
 
-import { Card, Spacer } from '@nextui-org/react';
+import {
+  Card,
+  CardHeader,
+  CardBody,
+  CardFooter,
+  Avatar,
+  Button,
+  Spacer,
+} from '@nextui-org/react';
 
 interface UserProfile {
   user_uid: string;
@@ -33,6 +41,19 @@ interface StudyPlace {
   notes: string;
 }
 
+interface Comment {
+  comment_id: string;
+  study_place_id: string;
+  user_id: string;
+  rating: string;
+  title: string;
+  contents: string;
+  created_at: string;
+  nickname: string;
+  user_profile_image: string;
+  study_place?: StudyPlace;
+}
+
 const My: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('profile');
   const [session, setSession] = useState<Session | null>(null);
@@ -45,6 +66,8 @@ const My: React.FC = () => {
   const [profileImage, setProfileImage] = useState<string>('');
 
   const [scrappedPlaces, setScrappedPlaces] = useState<StudyPlace[]>([]);
+  const [userComments, setUserComments] = useState<Comment[]>([]);
+  const [isFollowed, setIsFollowed] = React.useState(false);
 
   const router = useRouter();
 
@@ -178,6 +201,57 @@ const My: React.FC = () => {
     fetchScrappedPlaces();
     // 의존성 배열 없어도 될 것 같기도 함
   }, [session?.user?.id]);
+
+  const fetchUserComments = async () => {
+    if (!session?.user?.id) return;
+
+    const { data: commentsData, error: commentsError } = await supabase
+      .from('comments')
+      .select(
+        `
+        comment_id,
+        study_place_id,
+        rating,
+        title,
+        contents,
+        created_at,
+        nickname,
+        user_profile_image,
+        study_place:study_places(place_id, place_name)
+      `
+      )
+      .eq('user_id', session.user.id);
+
+    if (commentsError) {
+      console.error('댓글을 가져오는 중 오류 발생:', commentsError);
+      return;
+    }
+
+    setUserComments(commentsData as Comment[]);
+  };
+
+  useEffect(() => {
+    if (selectedCategory === 'comments') {
+      fetchUserComments();
+    }
+  }, [session?.user?.id, selectedCategory]);
+
+  const formatDateTime = (dateString: string): string => {
+    const date = new Date(dateString);
+    const year = date.getFullYear();
+    let month = date.getMonth() + 1; // getMonth()는 0부터 시작하기 때문에 +1
+    let day = date.getDate();
+    let hours = date.getHours();
+    let minutes = date.getMinutes();
+
+    // 한 자리 수일 경우 앞에 0을 붙여서 두 자리 수로 만듦
+    const formattedMonth = month < 10 ? `0${month}` : month.toString();
+    const formattedDay = day < 10 ? `0${day}` : day.toString();
+    const formattedHours = hours < 10 ? `0${hours}` : hours.toString();
+    const formattedMinutes = minutes < 10 ? `0${minutes}` : minutes.toString();
+
+    return `${year}-${formattedMonth}-${formattedDay} ${formattedHours}:${formattedMinutes}`;
+  };
 
   const handleCategorySelection = (category: string) => {
     setSelectedCategory(category);
@@ -365,64 +439,96 @@ const My: React.FC = () => {
                 </div>
               </div>
 
-              <div className='lg:col-span-1'>
-                <div className='w-full overflow-hidden mb-8'>
-                  <div
-                    className='rounded-lg bg-cover bg-center bg-no-repeat w-[300px] h-[300px] p-4'
-                    style={{
-                      backgroundImage: `url(${
-                        profileImage || '/default-profile.png'
-                      })`,
-                    }}
-                  ></div>
-                </div>
-                <input
-                  className='mt-1 block w-[300px] px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500'
-                  name='user_profile_image'
-                  type='file'
-                  onChange={handleImageChange}
-                />
-                <button
-                  className=' w-[300px] mt-2 px-4 py-2 bg-blue-500 text-white rounded-md'
-                  onClick={() => imageFile && uploadProfileImage()}
-                >
-                  이미지 변경하기
-                </button>
-              </div>
+              {userComments.length === 0 ? (
+                <Card className='flex justify-center items-center h-full w-full max-w-[430px]'>
+                  <div className='flex flex-col justify-center items-center py-10 space-y-1 py-2 mx-2'>
+                    <div>
+                      <p className='text-xl font-bold'>
+                        작성하신 댓글이 없습니다.
+                      </p>
+                    </div>
+                  </div>
+                </Card>
+              ) : (
+                <div className='lg:col-span-3 ml-2'>
+                  <Card className='w-full p-6 pb-8'>
+                    <div className='space-y-1 py-2 mx-2'>
+                      <div className='flex flex-wrap gap-4'>
+                        {userComments.map((comment, index) => (
+                          <Card
+                            key={comment.comment_id || index}
+                            className='w-full max-w-[330px]'
+                          >
+                            <CardHeader className='justify-between'>
+                              <div className='flex gap-5'>
+                                <Avatar
+                                  isBordered
+                                  radius='full'
+                                  size='md'
+                                  src={comment.user_profile_image}
+                                />
+                                <div className='flex flex-col gap-1 items-start justify-center'>
+                                  <h4 className='text-small font-semibold leading-none text-default-600'>
+                                    {comment.nickname}
+                                  </h4>
+                                  <h5 className='text-small tracking-tight text-default-400'>
+                                    {comment.rating}
+                                  </h5>
+                                </div>
+                              </div>
+                              <Button
+                                className={
+                                  isFollowed
+                                    ? 'bg-transparent text-foreground border-default-200'
+                                    : ''
+                                }
+                                color='primary'
+                                radius='full'
+                                size='sm'
+                                variant={isFollowed ? 'bordered' : 'solid'}
+                                onPress={() => setIsFollowed(!isFollowed)}
+                              >
+                                {isFollowed ? 'Unfollow' : 'Follow'}
+                              </Button>
+                            </CardHeader>
+                            <CardBody className='px-3 py-2'>
+                              <p className='mx-2 text-ml font-bold'>
+                                {comment.title}
+                              </p>
+                              <span className='mx-2 pt-2'>
+                                {comment.contents}
+                              </span>
+                            </CardBody>
+                            <CardFooter className='flex flex-col'>
+                              {/* <div className='flex gap-1'> */}
+                              {/* <p className='font-semibold text-default-400 text-small'>
+                                4
+                              </p>
+                              <p className=' text-default-400 text-small'>
+                                Following
+                              </p>
+                            </div>
+                            <div className='flex gap-1'>
+                              <p className='font-semibold text-default-400 text-small'>
+                                97.1K
+                              </p> */}
 
-              <div className='lg:col-span-2'>
-                <div className='w-full grid grid-cols-1 md:grid-cols-2 gap-4 flex flex-wrap'>
-                  <label className='text-2xl font-bold ml-3'>닉네임</label>
-                  <input
-                    className='mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500'
-                    name='nickname'
-                    value={updatedNickname}
-                    onChange={(e) => setUpdatedNickname(e.target.value)}
-                  />
-                  <label className='text-2xl font-bold ml-3'>이메일</label>
-                  <input
-                    className='mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500'
-                    name='email'
-                    value={updatedEmail}
-                    onChange={(e) => setUpdatedEmail(e.target.value)}
-                  />
-                  <label className='text-2xl font-bold ml-3'>유형</label>
-                  <input
-                    className='mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500'
-                    name='user_type'
-                    value={updatedUserType}
-                    onChange={(e) => setUpdatedUserType(e.target.value)}
-                  />
+                              <p className='text-default-500 text-sm'>
+                                {comment.study_place?.place_name}
+                              </p>
+
+                              <p className='text-default-400 text-sm'>
+                                {formatDateTime(comment.created_at)}
+                              </p>
+                              {/* </div> */}
+                            </CardFooter>
+                          </Card>
+                        ))}
+                      </div>
+                    </div>
+                  </Card>
                 </div>
-              </div>
-              <div className='lg:col-span-4 flex justify-end'>
-                <button
-                  className=' w-[250px] my-4 px-4 py-2 bg-blue-500 text-white rounded-md'
-                  onClick={updateUserProfile}
-                >
-                  프로필 저장하기
-                </button>
-              </div>
+              )}
             </div>
           </div>
         )}

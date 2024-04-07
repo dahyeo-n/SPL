@@ -442,22 +442,22 @@ const Detail = () => {
                             </CardBody>
                             <CardFooter className='gap-3'>
                               <div className='flex gap-1'>
-                                {/* <p className='font-semibold text-default-400 text-small'>
+                                {/* <p className='font-semibold text-default-400 text-sm'>
                                 4
                               </p>
-                              <p className=' text-default-400 text-small'>
+                              <p className=' text-default-400 text-sm'>
                                 Following
                               </p>
                             </div>
                             <div className='flex gap-1'>
-                              <p className='font-semibold text-default-400 text-small'>
+                              <p className='font-semibold text-default-400 text-sm'>
                                 97.1K
                               </p>
-                              <p className='text-default-400 text-small'>
+                              <p className='text-default-400 text-sm'>
                                 Followers
                               </p> */}
 
-                                <p className='text-default-400 text-small'>
+                                <p className='text-default-400 text-sm'>
                                   {formatDateTime(comment.created_at)}
                                 </p>
                               </div>
