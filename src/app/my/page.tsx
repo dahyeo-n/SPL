@@ -192,7 +192,12 @@ const My: React.FC = () => {
           </h1>
           <div className='pb-4'>
             <div className='ml-52 text-2xl font-bold text-gray-700 dark:text-gray-300'>
-              {userProfile?.nickname}님의 프로필 정보
+              {selectedCategory === 'profile' &&
+                `${userProfile?.nickname}님의 프로필 정보`}
+              {selectedCategory === 'scrapped' &&
+                `${userProfile?.nickname}님이 스크랩한 장소`}
+              {selectedCategory === 'comments' &&
+                `${userProfile?.nickname}님이 작성한 댓글`}
             </div>
           </div>
         </div>
