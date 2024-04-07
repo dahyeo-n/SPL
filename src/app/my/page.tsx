@@ -102,90 +102,96 @@ const My: React.FC = () => {
     <>
       <div>
         <main className='mx-20 lg:px-8'>
+          <div className='flex items-baseline justify-start pb-2 pt-6'>
+            <h1 className='text-4xl font-bold tracking-tight text-gray-900 dark:text-gray-200'>
+              Categories
+            </h1>
+            <div className='pb-4'>
+              <div className='ml-52 text-2xl font-bold text-gray-700 dark:text-gray-300'>
+                {userProfile?.nickname}님의 프로필 정보
+              </div>
+            </div>
+          </div>
+
           <section aria-labelledby='products-heading' className='pb-24 pt-6'>
             <div className='grid grid-cols-1 gap-x-8 gap-y-10 lg:grid-cols-4'>
-              <form className='hidden lg:block'>
-                <div className='mt-2 space-y-6 pb-8 text-xl font-medium text-gray-900 dark:text-gray-200'>
-                  <div>
-                    <button
-                      type='button'
-                      // onClick={() => handleCategorySelection('')}
-                    >
-                      내 프로필 정보
-                    </button>
-                  </div>
-                  <div>
-                    <button
-                      type='button'
-                      // onClick={() => handlePlaceTypeSelection('스터디룸')}
-                    >
-                      내가 스크랩한 장소
-                    </button>
-                  </div>
-                  <div>
-                    <button
-                      type='button'
-                      // onClick={() => handlePlaceTypeSelection('스터디카페')}
-                    >
-                      내가 작성한 댓글
-                    </button>
-                  </div>
+              <div className='lg:col-span-1 mt-2 space-y-6 pb-8 text-xl font-medium text-gray-900 dark:text-gray-200'>
+                <div>
+                  <button
+                  // onClick={() => handleCategorySelection('')}
+                  >
+                    내 프로필 정보
+                  </button>
                 </div>
-              </form>
-
-              <div className='lg:col-span-3'>
-                <div className='pb-4'>
-                  {/* flex items-center justify-start */}
-                  <div className='pb-4 text-3xl font-bold text-gray-700 dark:text-gray-300'>
-                    {userProfile?.nickname}님의 프로필 정보
-                  </div>
+                <div>
+                  <button
+                  // onClick={() => handlePlaceTypeSelection('스터디룸')}
+                  >
+                    내가 스크랩한 장소
+                  </button>
                 </div>
-                <div className='flex flex-wrap'>
-                  <div className='text-2xl font-bold ml-3'>
-                    {userProfile?.nickname}
-                  </div>
+                <div>
+                  <button
+                  // onClick={() => handlePlaceTypeSelection('스터디카페')}
+                  >
+                    내가 작성한 댓글
+                  </button>
+                </div>
+              </div>
+              <div className='lg:col-span-1'>
+                <div className='w-full overflow-hidden mb-8'>
+                  <div
+                    className='rounded-lg bg-cover bg-center bg-no-repeat w-[300px] h-[300px] p-4'
+                    style={{
+                      backgroundImage: `url(${userProfile?.user_profile_image})`,
+                    }}
+                  ></div>
+                </div>
+                <input
+                  className='mt-1 block w-[300px] px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500'
+                  name='user_profile_image'
+                  value={userProfile?.user_profile_image || ''}
+                  onChange={handleUserProfileInputChange}
+                />
+                <button
+                  className=' w-[300px] mt-2 px-4 py-2 bg-blue-500 text-white rounded-md'
+                  onClick={updateUserProfile}
+                >
+                  이미지 변경하기
+                </button>
+              </div>
+              <div className='lg:col-span-2'>
+                <div className='w-full grid grid-cols-1 md:grid-cols-2 gap-4 flex flex-wrap'>
+                  <div className='text-2xl font-bold ml-3'>닉네임</div>
                   <input
+                    className='mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500'
                     name='nickname'
                     value={userProfile?.nickname || ''}
                     onChange={handleUserProfileInputChange}
                   />
-                  <div className='text-2xl font-bold ml-3'>
-                    {userProfile?.email}
-                  </div>
+                  <div className='text-2xl font-bold ml-3'>이메일</div>
                   <input
+                    className='mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500'
                     name='email'
                     value={userProfile?.email}
                     onChange={handleUserProfileInputChange}
                   />
-                  <div className='text-2xl font-bold ml-3'>
-                    {userProfile?.user_type}
-                  </div>
+                  <div className='text-2xl font-bold ml-3'>유형</div>
                   <input
+                    className='mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500'
                     name='nickname'
                     value={userProfile?.user_type}
                     onChange={handleUserProfileInputChange}
                   />
-                  <div className='flex justify-center w-full overflow-hidden mb-8'>
-                    <div
-                      className='rounded-lg bg-cover bg-center bg-no-repeat w-[1000px] p-4 mx-2'
-                      style={{
-                        height: '500px',
-                        backgroundImage: `url(${userProfile?.user_profile_image})`,
-                      }}
-                    >
-                      <div>
-                        <input
-                          name='user_profile_image'
-                          value={userProfile?.user_profile_image || ''}
-                          onChange={handleUserProfileInputChange}
-                        />
-                        <button onClick={updateUserProfile}>
-                          프로필 저장하기
-                        </button>
-                      </div>
-                    </div>
-                  </div>
                 </div>
+              </div>
+              <div className='lg:col-span-4 flex justify-end'>
+                <button
+                  className=' w-[250px] my-4 px-4 py-2 bg-blue-500 text-white rounded-md'
+                  onClick={updateUserProfile}
+                >
+                  프로필 저장하기
+                </button>
               </div>
             </div>
           </section>
