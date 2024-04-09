@@ -331,7 +331,7 @@ const Detail = () => {
 
               <div className='lg:col-span-8 ml-24'>
                 <Card className='p-6 w-full'>
-                  <div className='space-y-5 pb-2'>
+                  <div className='space-y-6 pb-2'>
                     <div className='text-2xl font-bold mb-4'>
                       [{studyPlace.place_name}] 댓글 작성
                     </div>

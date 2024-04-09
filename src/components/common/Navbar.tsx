@@ -79,6 +79,7 @@ const Navbar: React.FC = () => {
 
             <button>
               <svg
+                name='scrap'
                 xmlns='http://www.w3.org/2000/svg'
                 fill='none'
                 viewBox='0 0 24 24'
