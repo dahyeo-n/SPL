@@ -233,11 +233,19 @@ const My: React.FC = () => {
       .eq('user_id', session.user.id);
 
     if (commentsError) {
-      console.error('댓글을 가져오는 중 오류 발생:', commentsError);
+      console.error('댓글을 가져오는 중 오류 발생: ', commentsError);
       return;
     }
 
-    setUserComments(commentsData as Comment[]);
+    if (Array.isArray(commentsData)) {
+      const typedComments: Comment[] = commentsData.map((comment: any) => {
+        return {
+          ...comment,
+          study_place: comment.study_place,
+        };
+      });
+      setUserComments(typedComments);
+    }
   };
 
   useEffect(() => {
