@@ -381,7 +381,6 @@ const Detail = () => {
 
                     <Textarea
                       name='title'
-                      key='faded'
                       variant='faded'
                       label='Title'
                       labelPlacement='outside'
@@ -393,7 +392,6 @@ const Detail = () => {
 
                     <Textarea
                       name='contents'
-                      key='faded'
                       variant='faded'
                       label='Contents'
                       labelPlacement='outside'
