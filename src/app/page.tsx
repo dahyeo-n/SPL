@@ -290,7 +290,7 @@ const Main: React.FC = () => {
               <div className='lg:col-span-3'>
                 <div className='flex flex-wrap'>
                   {studyPlaces.map((place) => (
-                    <React.Fragment key={place.id}>
+                    <React.Fragment key={place.place_id}>
                       <div
                         className='cursor-pointer transform transition duration-300 ease-in-out hover:scale-105'
                         onClick={() => router.push(`/detail/${place.place_id}`)}

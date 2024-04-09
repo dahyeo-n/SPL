@@ -405,7 +405,7 @@ const My: React.FC = () => {
                   </Card>
                 ) : (
                   <div className='flex flex-wrap'>
-                    {scrappedPlaces.map((place) => (
+                    {scrappedPlaces.map((place, index) => (
                       <React.Fragment key={place.place_id}>
                         <div
                           className='cursor-pointer transform transition duration-300 ease-in-out hover:scale-105'
