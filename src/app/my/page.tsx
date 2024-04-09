@@ -15,6 +15,8 @@ import {
   Avatar,
   Button,
   Spacer,
+  Select,
+  SelectItem,
 } from '@nextui-org/react';
 
 interface UserProfile {
@@ -70,6 +72,7 @@ const My: React.FC = () => {
   const [isFollowed, setIsFollowed] = React.useState(false);
 
   const router = useRouter();
+  const userTypes = ['중고등학생', '수험생', '대학생', '고시생', '직장인'];
 
   useEffect(() => {
     const getUserSession = async () => {
@@ -111,6 +114,13 @@ const My: React.FC = () => {
     } catch (error) {
       console.error('사용자 프로필을 불러오는 데 실패했습니다: ', error);
     }
+  };
+
+  const handleUserTypeSelectionChange = (
+    e: React.ChangeEvent<HTMLSelectElement>
+  ) => {
+    const value = e.target.value;
+    setUpdatedUserType(value);
   };
 
   const updateUserProfile = async () => {
@@ -223,11 +233,19 @@ const My: React.FC = () => {
       .eq('user_id', session.user.id);
 
     if (commentsError) {
-      console.error('댓글을 가져오는 중 오류 발생:', commentsError);
+      console.error('댓글을 가져오는 중 오류 발생: ', commentsError);
       return;
     }
 
-    setUserComments(commentsData as Comment[]);
+    if (Array.isArray(commentsData)) {
+      const typedComments: Comment[] = commentsData.map((comment: any) => {
+        return {
+          ...comment,
+          study_place: comment.study_place,
+        };
+      });
+      setUserComments(typedComments);
+    }
   };
 
   useEffect(() => {
@@ -265,7 +283,7 @@ const My: React.FC = () => {
             Categories
           </h1>
           <div className='pb-4'>
-            <div className='ml-52 text-2xl font-bold text-gray-700 dark:text-gray-300'>
+            <div className='ml-48 text-2xl font-bold text-gray-700 dark:text-gray-300'>
               {selectedCategory === 'profile' &&
                 `${userProfile?.nickname}님의 프로필 정보`}
               {selectedCategory === 'scrapped' &&
@@ -308,9 +326,7 @@ const My: React.FC = () => {
                   <div
                     className='rounded-lg bg-cover bg-center bg-no-repeat w-[300px] h-[300px] p-4'
                     style={{
-                      backgroundImage: `url(${
-                        profileImage || '/default-profile.png'
-                      })`,
+                      backgroundImage: `url(${profileImage})`,
                     }}
                   ></div>
                 </div>
@@ -345,12 +361,21 @@ const My: React.FC = () => {
                     onChange={(e) => setUpdatedEmail(e.target.value)}
                   />
                   <label className='text-2xl font-bold ml-3'>유형</label>
-                  <input
-                    className='mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500'
-                    name='user_type'
-                    value={updatedUserType}
-                    onChange={(e) => setUpdatedUserType(e.target.value)}
-                  />
+                  <Select
+                    isRequired
+                    // className='max-w-xs'
+                    className='mt-1 block w-full rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500'
+                    label='Type'
+                    placeholder='Select your type'
+                    defaultSelectedKeys={[]}
+                    onChange={handleUserTypeSelectionChange}
+                  >
+                    {userTypes.map((type) => (
+                      <SelectItem key={type} value={type}>
+                        {type}
+                      </SelectItem>
+                    ))}
+                  </Select>
                 </div>
               </div>
               <div className='lg:col-span-4 flex justify-end'>
@@ -472,9 +497,9 @@ const My: React.FC = () => {
                   <Card className='w-full p-6 pb-8'>
                     <div className='space-y-1 py-2 mx-2'>
                       <div className='flex flex-wrap gap-4'>
-                        {userComments.map((comment, index) => (
+                        {userComments.map((comment) => (
                           <Card
-                            key={comment.comment_id || index}
+                            key={comment.comment_id}
                             className='w-full max-w-[330px]'
                           >
                             <CardHeader className='justify-between'>

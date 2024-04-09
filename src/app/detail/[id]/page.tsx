@@ -106,7 +106,6 @@ const Detail = () => {
 
         setStudyPlace(data);
         console.log('data: ', data);
-        // fetchComments();
 
         if (data) {
           try {
@@ -148,7 +147,8 @@ const Detail = () => {
     };
 
     getUserSession();
-  }, [router]);
+    // }, [router]);
+  }, []);
 
   useEffect(() => {
     if (session?.user && typeof session.user.email === 'string') {
@@ -194,17 +194,35 @@ const Detail = () => {
   // 스크랩 추가
   const addScrap = async () => {
     if (session && studyPlace && !isScrapped) {
-      const { data, error } = await supabase
-        .from('study_place_scraps')
-        .insert([
-          { user_id: session.user.id, study_place_id: studyPlace.place_id },
-        ]);
+      try {
+        // 해당 유저가 해당 공부 장소를 전에도 스크랩했는지 확인
+        const { data: existingScrap, error: existingScrapError } =
+          await supabase
+            .from('study_place_scraps')
+            .select('id')
+            .eq('user_id', session.user.id)
+            .eq('study_place_id', studyPlace.place_id)
+            .single();
 
-      if (error) {
-        console.error('스크랩 추가 실패', error);
-      } else {
-        setIsScrapped(true);
-        console.log('스크랩 추가 성공', data);
+        if (existingScrap) {
+          return;
+        }
+
+        const { data, error } = await supabase
+          .from('study_place_scraps')
+          .insert([
+            { user_id: session.user.id, study_place_id: studyPlace.place_id },
+          ]);
+
+        if (error) {
+          console.error('스크랩 추가 실패', error);
+        } else {
+          setIsScrapped(true);
+          localStorage.setItem('isScrapped', 'true');
+          console.log('스크랩 추가 성공', data);
+        }
+      } catch (error) {
+        console.error('스크랩 추가 중 오류 발생', error);
       }
     }
   };
@@ -226,6 +244,7 @@ const Detail = () => {
         console.error('스크랩 취소 실패', error);
       } else {
         setIsScrapped(false);
+        localStorage.setItem('isScrapped', 'false');
         console.log('스크랩 취소 성공', data);
       }
     }
@@ -233,7 +252,10 @@ const Detail = () => {
 
   // 상태가 변경될 때마다 스크랩 상태 확인
   useEffect(() => {
+    const isScrappedFromStorage = localStorage.getItem('isScrapped');
+    setIsScrapped(isScrappedFromStorage === 'true');
     checkScrapStatus();
+    // alert('실행됐어요!');
   }, [session, studyPlace]);
 
   if (loading) return <p>Loading...</p>;
@@ -275,7 +297,8 @@ const Detail = () => {
         alert('댓글을 저장하는 데 실패했습니다.');
         console.error('Error saving comment: ', error);
       } else if (data) {
-        setComments((currentComments) => [...currentComments, ...data[0]]);
+        // setComments((currentComments) => [...currentComments, ...data[0]]);
+        setComments((currentComments) => [...currentComments, data[0]]);
       }
 
       setComment({ title: '', contents: '', rating: '' });
@@ -358,7 +381,6 @@ const Detail = () => {
 
                     <Textarea
                       name='title'
-                      key='faded'
                       variant='faded'
                       label='Title'
                       labelPlacement='outside'
@@ -370,7 +392,6 @@ const Detail = () => {
 
                     <Textarea
                       name='contents'
-                      key='faded'
                       variant='faded'
                       label='Contents'
                       labelPlacement='outside'
@@ -397,9 +418,9 @@ const Detail = () => {
                     <div className='text-2xl font-bold mb-7'>작성된 댓글</div>
                     <div className='flex flex-wrap gap-4'>
                       {comments.length > 0 ? (
-                        comments.map((comment, index) => (
+                        comments.map((comment) => (
                           <Card
-                            key={comment.comment_id || index}
+                            key={comment.comment_id}
                             className='w-full max-w-[340px]'
                           >
                             <CardHeader className='justify-between'>

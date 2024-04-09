@@ -148,7 +148,7 @@ const Main: React.FC = () => {
             </button> */}
             <div className='pb-4'>
               {/* flex items-center justify-start */}
-              <div className='ml-52 text-2xl font-bold text-gray-700 dark:text-gray-300'>
+              <div className='ml-48 text-2xl font-bold text-gray-700 dark:text-gray-300'>
                 {nickname
                   ? `${nickname}님이 목표와 꿈을 이루시도록 스플이 함께할게요!`
                   : '3초만에 로그인해서 다양한 서비스를 만나보세요!'}
@@ -290,7 +290,7 @@ const Main: React.FC = () => {
               <div className='lg:col-span-3'>
                 <div className='flex flex-wrap'>
                   {studyPlaces.map((place) => (
-                    <React.Fragment key={place.id}>
+                    <React.Fragment key={place.place_id}>
                       <div
                         className='cursor-pointer transform transition duration-300 ease-in-out hover:scale-105'
                         onClick={() => router.push(`/detail/${place.place_id}`)}
