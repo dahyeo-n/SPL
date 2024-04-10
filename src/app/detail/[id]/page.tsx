@@ -506,8 +506,9 @@ const Detail = () => {
                       labelPlacement='outside'
                       value={comment.title}
                       onChange={handleCommentInputChange}
-                      placeholder='Enter the title'
+                      placeholder='Enter the title. Please limit to 50 characters or less.'
                       className='col-span-12 md:col-span-6 mb-6 md:mb-0 font-bold'
+                      maxLength={50}
                     />
 
                     <Textarea
@@ -517,8 +518,9 @@ const Detail = () => {
                       labelPlacement='outside'
                       value={comment.contents}
                       onChange={handleCommentInputChange}
-                      placeholder='Enter the contents'
+                      placeholder='Enter the contents. Please limit to 300 characters or less.'
                       className='col-span-12 md:col-span-6 mb-6 md:mb-0 font-bold'
+                      maxLength={300}
                     />
                     <Button
                       className='w-full'
