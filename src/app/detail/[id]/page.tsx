@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 
 import supabase from '@/supabaseClient';
@@ -66,12 +66,32 @@ const Detail = () => {
   const [comments, setComments] = useState<Comments[]>([]);
 
   const [isOpen, setIsOpen] = useState(false);
+  const toggleRef = useRef<HTMLButtonElement>(null);
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
 
+  // ellipsis 토글 상태 관리
   const handleEllipsisToggle = () => {
     setIsOpen(!isOpen);
   };
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        toggleRef.current &&
+        !toggleRef.current.contains(event.target as Node)
+      ) {
+        setIsOpen(false); // Ref의 바깥쪽을 클릭했을 때 토글 상태를 false로
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+
+    return () => {
+      // 컴포넌트가 언마운트되면 이벤트 리스너 제거
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const [comment, setComment] = useState<Comment>({
     title: '',
@@ -359,7 +379,7 @@ const Detail = () => {
     });
   };
 
-  const handleCommentUpdate = async () => {
+  const handleUpdateComment = async () => {
     if (!isCommentValid() || !editingCommentId) {
       alert('모든 필드를 올바르게 입력해주세요.');
       return;
@@ -397,6 +417,32 @@ const Detail = () => {
     } catch (error) {
       alert('댓글 수정에 실패했습니다.');
       console.error('Error updating comment: ', error);
+    }
+  };
+
+  const handleDeleteComment = async (commentId: string) => {
+    const isConfirmed = confirm('정말 삭제하시겠습니까?');
+    if (!isConfirmed) {
+      return;
+    }
+
+    if (!checkLoginAndRedirect()) return;
+
+    try {
+      const { error } = await supabase
+        .from('comments')
+        .delete()
+        .eq('comment_id', commentId);
+
+      if (error) throw error;
+
+      // 삭제된 후, 상태 업데이트
+      setComments((currentComments) =>
+        currentComments.filter((comment) => comment.comment_id !== commentId)
+      );
+    } catch (error) {
+      alert('댓글 삭제에 실패했습니다.');
+      console.error('Error deleting comment: ', error);
     }
   };
 
@@ -478,7 +524,7 @@ const Detail = () => {
                       className='w-full'
                       color='primary'
                       variant='shadow'
-                      onPress={isEditing ? handleCommentUpdate : saveComment}
+                      onPress={isEditing ? handleUpdateComment : saveComment}
                     >
                       {isEditing ? '수정하기' : '작성하기'}
                     </Button>
@@ -516,7 +562,10 @@ const Detail = () => {
                               </div>
 
                               {comment.user_id === session?.user.id && (
-                                <button onClick={handleEllipsisToggle}>
+                                <button
+                                  onClick={handleEllipsisToggle}
+                                  ref={toggleRef}
+                                >
                                   <svg
                                     name='ellipsis'
                                     xmlns='http://www.w3.org/2000/svg'
@@ -545,7 +594,13 @@ const Detail = () => {
                                   >
                                     Edit
                                   </Button>
-                                  <Button>Delete</Button>
+                                  <Button
+                                    onClick={() =>
+                                      handleDeleteComment(comment.comment_id)
+                                    }
+                                  >
+                                    Delete
+                                  </Button>
                                 </div>
                               )}
                             </CardHeader>
