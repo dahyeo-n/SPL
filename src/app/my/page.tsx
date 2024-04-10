@@ -493,7 +493,7 @@ const My: React.FC = () => {
                   </div>
                 </Card>
               ) : (
-                <div className='lg:col-span-3 ml-2'>
+                <div className='lg:col-span-3'>
                   <Card className='w-full p-6 pb-8'>
                     <div className='space-y-1 py-2 mx-2'>
                       <div className='flex flex-wrap gap-4'>

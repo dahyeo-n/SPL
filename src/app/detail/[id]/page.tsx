@@ -66,7 +66,8 @@ const Detail = () => {
   const [comments, setComments] = useState<Comments[]>([]);
 
   const [isOpen, setIsOpen] = useState(false);
-  const [isFollowed, setIsFollowed] = React.useState(false);
+  const [isEditing, setIsEditing] = useState<boolean>(false);
+  const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
 
   const handleEllipsisToggle = () => {
     setIsOpen(!isOpen);
@@ -348,6 +349,57 @@ const Detail = () => {
     return `${year}-${formattedMonth}-${formattedDay} ${formattedHours}:${formattedMinutes}`;
   };
 
+  const handleEditButtonClick = (comment: Comments) => {
+    setIsEditing(true);
+    setEditingCommentId(comment.comment_id);
+    setComment({
+      title: comment.title,
+      contents: comment.contents,
+      rating: comment.rating,
+    });
+  };
+
+  const handleCommentUpdate = async () => {
+    if (!isCommentValid() || !editingCommentId) {
+      alert('모든 필드를 올바르게 입력해주세요.');
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('comments')
+        .update({
+          title: comment.title,
+          contents: comment.contents,
+          rating: comment.rating,
+        })
+        .eq('comment_id', editingCommentId);
+
+      if (error) throw error;
+
+      setComments((prevComments) =>
+        prevComments.map((comment) =>
+          comment.comment_id === editingCommentId
+            ? {
+                ...comment,
+                title: comment.title,
+                contents: comment.contents,
+                rating: comment.rating,
+              }
+            : comment
+        )
+      );
+
+      // 수정 모드 종료
+      setIsEditing(false);
+      setEditingCommentId(null);
+      setComment({ title: '', contents: '', rating: '' });
+    } catch (error) {
+      alert('댓글 수정에 실패했습니다.');
+      console.error('Error updating comment: ', error);
+    }
+  };
+
   return (
     <>
       <div className='flex justify-center w-full overflow-hidden mb-8'>
@@ -426,9 +478,9 @@ const Detail = () => {
                       className='w-full'
                       color='primary'
                       variant='shadow'
-                      onPress={saveComment}
+                      onPress={isEditing ? handleCommentUpdate : saveComment}
                     >
-                      작성하기
+                      {isEditing ? '수정하기' : '작성하기'}
                     </Button>
                   </div>
                 </Card>
@@ -485,7 +537,14 @@ const Detail = () => {
 
                               {isOpen && (
                                 <div className='absolute w-20 pt-5 mt-10 mr-3 z-10 top-0 right-0'>
-                                  <Button className='mb-1'>Edit</Button>
+                                  <Button
+                                    className='mb-1'
+                                    onClick={() =>
+                                      handleEditButtonClick(comment)
+                                    }
+                                  >
+                                    Edit
+                                  </Button>
                                   <Button>Delete</Button>
                                 </div>
                               )}
