@@ -18,16 +18,6 @@ const Navbar: React.FC = () => {
   const router = useRouter();
   const pathname = usePathname();
 
-  const handleSignOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      console.error('로그아웃 에러:', error);
-    } else {
-      console.log('로그아웃 성공');
-      router.replace('/');
-    }
-  };
-
   useEffect(() => {
     const getUserSession = async () => {
       try {
@@ -44,6 +34,31 @@ const Navbar: React.FC = () => {
   }, [router, pathname]);
 
   const token = session?.access_token ? true : false;
+
+  useEffect(() => {
+    const { data } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT') {
+        setSession(null);
+      } else {
+        setSession(session);
+      }
+    });
+
+    return () => {
+      data.subscription.unsubscribe();
+    };
+  }, []);
+
+  // 로그아웃 처리 함수
+  const handleSignOut = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      console.error('로그아웃 에러: ', error);
+    } else {
+      console.log('로그아웃 성공');
+      router.replace('/');
+    }
+  };
 
   return (
     <div className='flex h-14 mx-8 my-4 items-center justify-between'>

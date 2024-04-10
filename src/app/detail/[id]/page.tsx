@@ -147,8 +147,7 @@ const Detail = () => {
     };
 
     getUserSession();
-    // }, [router]);
-  }, []);
+  }, [router]);
 
   useEffect(() => {
     if (session?.user && typeof session.user.email === 'string') {
@@ -179,8 +178,8 @@ const Detail = () => {
 
   // 공부 장소의 스크랩 여부 확인
   const checkScrapStatus = async () => {
-    if (session && studyPlace) {
-      const { data, error } = await supabase
+    if (session?.user?.id && studyPlace?.id) {
+      const { data } = await supabase
         .from('study_place_scraps')
         .select('id')
         .eq('user_id', session.user.id)
@@ -222,7 +221,7 @@ const Detail = () => {
           console.log('스크랩 추가 성공', data);
         }
       } catch (error) {
-        console.error('스크랩 추가 중 오류 발생', error);
+        console.error('스크랩 추가 중 오류 발생: ', error);
       }
     }
   };
@@ -254,7 +253,10 @@ const Detail = () => {
   useEffect(() => {
     const isScrappedFromStorage = localStorage.getItem('isScrapped');
     setIsScrapped(isScrappedFromStorage === 'true');
-    checkScrapStatus();
+
+    if (studyPlace) {
+      checkScrapStatus();
+    }
     // alert('실행됐어요!');
   }, [session, studyPlace]);
 
@@ -297,7 +299,6 @@ const Detail = () => {
         alert('댓글을 저장하는 데 실패했습니다.');
         console.error('Error saving comment: ', error);
       } else if (data) {
-        // setComments((currentComments) => [...currentComments, ...data[0]]);
         setComments((currentComments) => [...currentComments, data[0]]);
       }
 
