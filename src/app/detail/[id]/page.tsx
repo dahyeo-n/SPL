@@ -7,6 +7,8 @@ import supabase from '@/supabaseClient';
 import { Session } from '@supabase/supabase-js';
 
 import { CustomDetailCard } from '../../../components/common/CustomDetailCard';
+import mediumZoom from 'medium-zoom';
+import { useTheme } from 'next-themes';
 
 import {
   Image,
@@ -66,9 +68,12 @@ const Detail = () => {
   const [comments, setComments] = useState<Comments[]>([]);
 
   const [isOpen, setIsOpen] = useState(false);
-  const toggleRef = useRef<HTMLButtonElement>(null);
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
+
+  const { theme } = useTheme();
+  const toggleRef = useRef<HTMLButtonElement>(null);
+  const imageRef = useRef<HTMLImageElement>(null);
 
   // ellipsis 토글 상태 관리
   const handleEllipsisToggle = () => {
@@ -92,6 +97,27 @@ const Detail = () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
+
+  const handleImageLoad = () => {
+    const isDarkMode = theme === 'dark';
+
+    if (imageRef.current) {
+      const zoom = mediumZoom(imageRef.current, {
+        background: isDarkMode ? '#000' : '#fff',
+        margin: 0,
+        // scrollOffset: 0, // 스크롤 불가능한 오프셋 값을 0으로 설정
+        // container: null, // 원본 크기로 보이기 위해 컨테이너 미지정
+        // template: null, // 템플릿 미지정
+      });
+
+      // 확대된 이미지를 클릭하면 닫히도록 이벤트 리스너를 추가
+      zoom.on('open', (event) => {
+        zoom.getZoomedImage().addEventListener('click', zoom.close);
+      });
+
+      return () => zoom.detach();
+    }
+  };
 
   const [comment, setComment] = useState<Comment>({
     title: '',
@@ -450,12 +476,22 @@ const Detail = () => {
     <>
       <div className='flex justify-center w-full overflow-hidden mb-8'>
         <div
-          className='rounded-lg bg-cover bg-center bg-no-repeat w-[1000px] p-4 mx-2'
-          style={{
-            height: '500px',
-            backgroundImage: `url(${studyPlace.photo_url})`,
-          }}
-        ></div>
+          className='rounded-lg w-[1000px] p-4 mx-2'
+          style={{ height: '500px' }}
+        >
+          <img
+            ref={imageRef}
+            src={studyPlace?.photo_url}
+            alt={studyPlace?.place_name}
+            onLoad={handleImageLoad}
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              borderRadius: '8px',
+            }}
+          />
+        </div>
       </div>
       <div>
         <main className='mx-20 lg:px-8'>
