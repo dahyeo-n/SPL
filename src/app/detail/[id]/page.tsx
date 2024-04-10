@@ -133,6 +133,15 @@ const Detail = () => {
     fetchStudyPlaceData();
   }, []);
 
+  const checkLoginAndRedirect = () => {
+    if (!session) {
+      alert('로그인이 필요한 서비스입니다. 로그인 페이지로 이동합니다.');
+      router.push('/sign/signin'); // 로그인 페이지로 Redirect
+      return false; // 로그인하지 않은 상태
+    }
+    return true; // 로그인한 상태
+  };
+
   useEffect(() => {
     const getUserSession = async () => {
       try {
@@ -192,6 +201,8 @@ const Detail = () => {
 
   // 스크랩 추가
   const addScrap = async () => {
+    if (!checkLoginAndRedirect()) return;
+
     if (session && studyPlace && !isScrapped) {
       try {
         // 해당 유저가 해당 공부 장소를 전에도 스크랩했는지 확인
@@ -228,6 +239,8 @@ const Detail = () => {
 
   // 스크랩 취소
   const removeScrap = async () => {
+    if (!checkLoginAndRedirect()) return;
+
     if (session && studyPlace && isScrapped) {
       const { data, error } = await supabase
         .from('study_place_scraps')
@@ -277,6 +290,8 @@ const Detail = () => {
   };
 
   const saveComment = async () => {
+    if (!checkLoginAndRedirect()) return;
+
     if (!isCommentValid()) {
       alert('평점과 댓글 제목과 내용을 모두 입력해주세요.');
       return;
@@ -422,7 +437,7 @@ const Detail = () => {
                         comments.map((comment) => (
                           <Card
                             key={comment.comment_id}
-                            className='w-full max-w-[340px]'
+                            className='w-full max-w-[337px]'
                           >
                             <CardHeader className='justify-between'>
                               <div className='flex gap-5'>
