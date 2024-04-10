@@ -445,7 +445,7 @@ const Detail = () => {
                             key={comment.comment_id}
                             className='w-full max-w-[337px] relative'
                           >
-                            <CardHeader className='justify-between'>
+                            <CardHeader className='justify-between mt-2 ml-2'>
                               <div className='flex gap-5'>
                                 <Avatar
                                   isBordered
@@ -463,26 +463,28 @@ const Detail = () => {
                                 </div>
                               </div>
 
-                              <button onClick={handleEllipsisToggle}>
-                                <svg
-                                  name='ellipsis'
-                                  xmlns='http://www.w3.org/2000/svg'
-                                  fill='none'
-                                  viewBox='0 0 24 24'
-                                  strokeWidth={1.5}
-                                  stroke='currentColor'
-                                  className='w-6 h-6'
-                                >
-                                  <path
-                                    strokeLinecap='round'
-                                    strokeLinejoin='round'
-                                    d='M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z'
-                                  />
-                                </svg>
-                              </button>
+                              {comment.user_id === session?.user.id && (
+                                <button onClick={handleEllipsisToggle}>
+                                  <svg
+                                    name='ellipsis'
+                                    xmlns='http://www.w3.org/2000/svg'
+                                    fill='none'
+                                    viewBox='0 0 24 24'
+                                    strokeWidth={1.5}
+                                    stroke='currentColor'
+                                    className='w-6 h-6 mr-2'
+                                  >
+                                    <path
+                                      strokeLinecap='round'
+                                      strokeLinejoin='round'
+                                      d='M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z'
+                                    />
+                                  </svg>
+                                </button>
+                              )}
 
                               {isOpen && (
-                                <div className='absolute w-20 pt-3 mt-10 mr-3 z-10 top-0 right-0'>
+                                <div className='absolute w-20 pt-5 mt-10 mr-3 z-10 top-0 right-0'>
                                   <Button className='mb-1'>Edit</Button>
                                   <Button>Delete</Button>
                                 </div>
@@ -495,7 +497,7 @@ const Detail = () => {
                               </p>
                               <span className='pt-2'>{comment.contents}</span>
                             </CardBody>
-                            <CardFooter className='gap-3'>
+                            <CardFooter className='ml-2 gap-3'>
                               <div className='flex gap-1'>
                                 {/* <p className='font-semibold text-default-400 text-sm'>
                                 4
