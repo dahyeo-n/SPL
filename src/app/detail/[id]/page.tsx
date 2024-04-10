@@ -625,7 +625,7 @@ const Detail = () => {
                               {isOpen && (
                                 <div className='absolute w-20 pt-5 mt-10 mr-3 z-10 top-0 right-0'>
                                   <Button
-                                    className='mb-1'
+                                    className='mb-1 font-bold'
                                     onClick={() =>
                                       handleEditButtonClick(comment)
                                     }
@@ -633,6 +633,7 @@ const Detail = () => {
                                     Edit
                                   </Button>
                                   <Button
+                                    className='font-bold'
                                     onClick={() =>
                                       handleDeleteComment(comment.comment_id)
                                     }

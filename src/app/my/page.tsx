@@ -336,31 +336,37 @@ const My: React.FC = () => {
                   type='file'
                   onChange={handleImageChange}
                 />
-                <button
+                {/* <button
                   className=' w-[300px] mt-2 px-4 py-2 bg-blue-500 text-white rounded-md'
                   onClick={() => imageFile && uploadProfileImage()}
                 >
                   이미지 변경하기
-                </button>
+                </button> */}
               </div>
 
               <div className='lg:col-span-2'>
-                <div className='w-full grid grid-cols-1 md:grid-cols-2 gap-4 flex flex-wrap'>
-                  <label className='text-2xl font-bold ml-3'>닉네임</label>
+                <div className='w-full grid grid-cols-1 md:grid-cols-2 gap-4 flex flex-wrap text-end'>
+                  <label className='text-2xl font-bold ml-3 mt-3 mr-8'>
+                    닉네임
+                  </label>
                   <input
                     className='mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500'
                     name='nickname'
                     value={updatedNickname}
                     onChange={(e) => setUpdatedNickname(e.target.value)}
                   />
-                  <label className='text-2xl font-bold ml-3'>이메일</label>
+                  <label className='text-2xl font-bold ml-3 mt-3 mr-8'>
+                    이메일
+                  </label>
                   <input
                     className='mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500'
                     name='email'
                     value={updatedEmail}
                     onChange={(e) => setUpdatedEmail(e.target.value)}
                   />
-                  <label className='text-2xl font-bold ml-3'>유형</label>
+                  <label className='text-2xl font-bold ml-3 mt-4 mr-8'>
+                    유형
+                  </label>
                   <Select
                     isRequired
                     // className='max-w-xs'
