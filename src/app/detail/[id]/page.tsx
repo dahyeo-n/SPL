@@ -56,15 +56,21 @@ interface Comments {
 }
 
 const Detail = () => {
-  const [isFollowed, setIsFollowed] = React.useState(false);
-
   const [studyPlace, setStudyPlace] = useState<StudyPlace | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [nickname, setNickname] = useState<string | null>(null);
   const [userProfileImage, setUserProfileImage] = useState<string | null>(null);
   const [session, setSession] = useState<Session | null>(null);
+
   const [isScrapped, setIsScrapped] = useState(false);
   const [comments, setComments] = useState<Comments[]>([]);
+
+  const [isOpen, setIsOpen] = useState(false);
+  const [isFollowed, setIsFollowed] = React.useState(false);
+
+  const handleEllipsisToggle = () => {
+    setIsOpen(!isOpen);
+  };
 
   const [comment, setComment] = useState<Comment>({
     title: '',
@@ -437,7 +443,7 @@ const Detail = () => {
                         comments.map((comment) => (
                           <Card
                             key={comment.comment_id}
-                            className='w-full max-w-[337px]'
+                            className='w-full max-w-[337px] relative'
                           >
                             <CardHeader className='justify-between'>
                               <div className='flex gap-5'>
@@ -456,21 +462,33 @@ const Detail = () => {
                                   </h5>
                                 </div>
                               </div>
-                              <Button
-                                className={
-                                  isFollowed
-                                    ? 'bg-transparent text-foreground border-default-200'
-                                    : ''
-                                }
-                                color='primary'
-                                radius='full'
-                                size='sm'
-                                variant={isFollowed ? 'bordered' : 'solid'}
-                                onPress={() => setIsFollowed(!isFollowed)}
-                              >
-                                {isFollowed ? 'Unfollow' : 'Follow'}
-                              </Button>
+
+                              <button onClick={handleEllipsisToggle}>
+                                <svg
+                                  name='ellipsis'
+                                  xmlns='http://www.w3.org/2000/svg'
+                                  fill='none'
+                                  viewBox='0 0 24 24'
+                                  strokeWidth={1.5}
+                                  stroke='currentColor'
+                                  className='w-6 h-6'
+                                >
+                                  <path
+                                    strokeLinecap='round'
+                                    strokeLinejoin='round'
+                                    d='M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z'
+                                  />
+                                </svg>
+                              </button>
+
+                              {isOpen && (
+                                <div className='absolute w-20 pt-3 mt-10 mr-3 z-10 top-0 right-0'>
+                                  <Button className='mb-1'>Edit</Button>
+                                  <Button>Delete</Button>
+                                </div>
+                              )}
                             </CardHeader>
+
                             <CardBody className='m-2 px-3 py-0'>
                               <p className='text-ml font-bold'>
                                 {comment.title}
