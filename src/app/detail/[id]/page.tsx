@@ -71,14 +71,23 @@ const Detail = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
+  const [selectedCommentId, setSelectedCommentId] = useState<string | null>(
+    null
+  );
 
   const { theme } = useTheme();
   const toggleRef = useRef<HTMLButtonElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
 
   // ellipsis 토글 상태 관리
-  const handleEllipsisToggle = () => {
-    setIsOpen(!isOpen);
+  const handleEllipsisToggle = (commentId: string) => {
+    if (isOpen && selectedCommentId === commentId) {
+      setIsOpen(false);
+      setSelectedCommentId(null);
+    } else {
+      setIsOpen(true);
+      setSelectedCommentId(commentId);
+    }
   };
 
   useEffect(() => {
@@ -605,7 +614,9 @@ const Detail = () => {
 
                               {comment.user_id === session?.user.id && (
                                 <button
-                                  onClick={handleEllipsisToggle}
+                                  onClick={() =>
+                                    handleEllipsisToggle(comment.comment_id)
+                                  }
                                   ref={toggleRef}
                                 >
                                   <svg
@@ -626,26 +637,27 @@ const Detail = () => {
                                 </button>
                               )}
 
-                              {isOpen && (
-                                <div className='absolute w-20 pt-5 mt-10 mr-3 z-10 top-0 right-0'>
-                                  <Button
-                                    className='mb-1 font-bold'
-                                    onClick={() =>
-                                      handleEditButtonClick(comment)
-                                    }
-                                  >
-                                    Edit
-                                  </Button>
-                                  <Button
-                                    className='font-bold'
-                                    onClick={() =>
-                                      handleDeleteComment(comment.comment_id)
-                                    }
-                                  >
-                                    Delete
-                                  </Button>
-                                </div>
-                              )}
+                              {isOpen &&
+                                selectedCommentId === comment.comment_id && (
+                                  <div className='absolute w-20 pt-5 mt-10 mr-3 z-10 top-0 right-0'>
+                                    <Button
+                                      className='mb-1 font-bold'
+                                      onClick={() =>
+                                        handleEditButtonClick(comment)
+                                      }
+                                    >
+                                      Edit
+                                    </Button>
+                                    <Button
+                                      className='font-bold'
+                                      onClick={() =>
+                                        handleDeleteComment(comment.comment_id)
+                                      }
+                                    >
+                                      Delete
+                                    </Button>
+                                  </div>
+                                )}
                             </CardHeader>
 
                             <CardBody className='m-2 px-3 py-0'>
