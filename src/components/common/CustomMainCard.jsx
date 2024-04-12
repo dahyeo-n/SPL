@@ -12,7 +12,7 @@ export const CustomMainCard = ({ place, onCardClick }) => (
       ></div>
       <div className='space-y-1 pt-2'>
         <div className='text-xl font-bold pt-2'>{place.place_name}</div>
-        <div className='text-lg'>[평점] {place.rating ?? '없음'}</div>
+        <div className='text-lg'>[NAVER 평점] {place.rating ?? '없음'}</div>
         <div className='text-lg'>[위치] {place.address}</div>
         <div className='text-lg'>[운영시간] {place.operating_hours}</div>
       </div>

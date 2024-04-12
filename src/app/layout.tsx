@@ -1,3 +1,6 @@
+import React from 'react';
+import Head from 'next/head';
+
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
@@ -19,6 +22,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang='ko'>
+      <Head>
+        <script
+          type='text/javascript'
+          src={`//dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.NEXT_PUBLIC_KAKAO_MAP_API_KEY}&libraries=services`}
+        ></script>
+      </Head>
       <body className={inter.className}>
         <QueryProvider>
           <NavBar />

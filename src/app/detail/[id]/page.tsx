@@ -1,12 +1,15 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 
 import supabase from '@/supabaseClient';
 import { Session } from '@supabase/supabase-js';
-
 import { CustomDetailCard } from '../../../components/common/CustomDetailCard';
+import Map from '../../../components/Map';
+
+import mediumZoom from 'medium-zoom';
+import { useTheme } from 'next-themes';
 
 import {
   Image,
@@ -56,15 +59,66 @@ interface Comments {
 }
 
 const Detail = () => {
-  const [isFollowed, setIsFollowed] = React.useState(false);
-
   const [studyPlace, setStudyPlace] = useState<StudyPlace | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [nickname, setNickname] = useState<string | null>(null);
   const [userProfileImage, setUserProfileImage] = useState<string | null>(null);
   const [session, setSession] = useState<Session | null>(null);
+
   const [isScrapped, setIsScrapped] = useState(false);
   const [comments, setComments] = useState<Comments[]>([]);
+
+  const [isOpen, setIsOpen] = useState(false);
+  const [isEditing, setIsEditing] = useState<boolean>(false);
+  const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
+
+  const { theme } = useTheme();
+  const toggleRef = useRef<HTMLButtonElement>(null);
+  const imageRef = useRef<HTMLImageElement>(null);
+
+  // ellipsis 토글 상태 관리
+  const handleEllipsisToggle = () => {
+    setIsOpen(!isOpen);
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        toggleRef.current &&
+        !toggleRef.current.contains(event.target as Node)
+      ) {
+        setIsOpen(false); // Ref의 바깥쪽을 클릭했을 때 토글 상태를 false로
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+
+    return () => {
+      // 컴포넌트가 언마운트되면 이벤트 리스너 제거
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  const handleImageLoad = () => {
+    const isDarkMode = theme === 'dark';
+
+    if (imageRef.current) {
+      const zoom = mediumZoom(imageRef.current, {
+        background: isDarkMode ? '#000' : '#fff',
+        margin: 0,
+        // scrollOffset: 0, // 스크롤 불가능한 오프셋 값을 0으로 설정
+        // container: null, // 원본 크기로 보이기 위해 컨테이너 미지정
+        // template: null, // 템플릿 미지정
+      });
+
+      // 확대된 이미지를 클릭하면 닫히도록 이벤트 리스너를 추가
+      zoom.on('open', (event) => {
+        zoom.getZoomedImage().addEventListener('click', zoom.close);
+      });
+
+      return () => zoom.detach();
+    }
+  };
 
   const [comment, setComment] = useState<Comment>({
     title: '',
@@ -133,6 +187,15 @@ const Detail = () => {
     fetchStudyPlaceData();
   }, []);
 
+  const checkLoginAndRedirect = () => {
+    if (!session) {
+      alert('로그인이 필요한 서비스입니다. 로그인 페이지로 이동합니다.');
+      router.push('/sign/signin'); // 로그인 페이지로 Redirect
+      return false; // 로그인하지 않은 상태
+    }
+    return true; // 로그인한 상태
+  };
+
   useEffect(() => {
     const getUserSession = async () => {
       try {
@@ -192,6 +255,8 @@ const Detail = () => {
 
   // 스크랩 추가
   const addScrap = async () => {
+    if (!checkLoginAndRedirect()) return;
+
     if (session && studyPlace && !isScrapped) {
       try {
         // 해당 유저가 해당 공부 장소를 전에도 스크랩했는지 확인
@@ -228,6 +293,8 @@ const Detail = () => {
 
   // 스크랩 취소
   const removeScrap = async () => {
+    if (!checkLoginAndRedirect()) return;
+
     if (session && studyPlace && isScrapped) {
       const { data, error } = await supabase
         .from('study_place_scraps')
@@ -277,6 +344,8 @@ const Detail = () => {
   };
 
   const saveComment = async () => {
+    if (!checkLoginAndRedirect()) return;
+
     if (!isCommentValid()) {
       alert('평점과 댓글 제목과 내용을 모두 입력해주세요.');
       return;
@@ -327,16 +396,103 @@ const Detail = () => {
     return `${year}-${formattedMonth}-${formattedDay} ${formattedHours}:${formattedMinutes}`;
   };
 
+  const handleEditButtonClick = (comment: Comments) => {
+    setIsEditing(true);
+    setEditingCommentId(comment.comment_id);
+    setComment({
+      title: comment.title,
+      contents: comment.contents,
+      rating: comment.rating,
+    });
+  };
+
+  const handleUpdateComment = async () => {
+    if (!isCommentValid() || !editingCommentId) {
+      alert('모든 필드를 올바르게 입력해주세요.');
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('comments')
+        .update({
+          title: comment.title,
+          contents: comment.contents,
+          rating: comment.rating,
+        })
+        .eq('comment_id', editingCommentId);
+
+      if (error) throw error;
+
+      setComments((prevComments) =>
+        prevComments.map((comment) =>
+          comment.comment_id === editingCommentId
+            ? {
+                ...comment,
+                title: comment.title,
+                contents: comment.contents,
+                rating: comment.rating,
+              }
+            : comment
+        )
+      );
+
+      // 수정 모드 종료
+      setIsEditing(false);
+      setEditingCommentId(null);
+      setComment({ title: '', contents: '', rating: '' });
+    } catch (error) {
+      alert('댓글 수정에 실패했습니다.');
+      console.error('Error updating comment: ', error);
+    }
+  };
+
+  const handleDeleteComment = async (commentId: string) => {
+    const isConfirmed = confirm('정말 삭제하시겠습니까?');
+    if (!isConfirmed) {
+      return;
+    }
+
+    if (!checkLoginAndRedirect()) return;
+
+    try {
+      const { error } = await supabase
+        .from('comments')
+        .delete()
+        .eq('comment_id', commentId);
+
+      if (error) throw error;
+
+      // 삭제된 후, 상태 업데이트
+      setComments((currentComments) =>
+        currentComments.filter((comment) => comment.comment_id !== commentId)
+      );
+    } catch (error) {
+      alert('댓글 삭제에 실패했습니다.');
+      console.error('Error deleting comment: ', error);
+    }
+  };
+
   return (
     <>
       <div className='flex justify-center w-full overflow-hidden mb-8'>
         <div
-          className='rounded-lg bg-cover bg-center bg-no-repeat w-[1000px] p-4 mx-2'
-          style={{
-            height: '500px',
-            backgroundImage: `url(${studyPlace.photo_url})`,
-          }}
-        ></div>
+          className='rounded-lg w-[1000px] p-4 mx-2'
+          style={{ height: '500px' }}
+        >
+          <img
+            ref={imageRef}
+            src={studyPlace?.photo_url}
+            alt={studyPlace?.place_name}
+            onLoad={handleImageLoad}
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              borderRadius: '8px',
+            }}
+          />
+        </div>
       </div>
       <div>
         <main className='mx-20 lg:px-8'>
@@ -351,6 +507,9 @@ const Detail = () => {
                     onUnscrap={removeScrap}
                   />
                 </React.Fragment>
+                <Card className='ml-2 w-[480px]'>
+                  <Map address={studyPlace.address} />
+                </Card>
               </div>
 
               <div className='lg:col-span-8 ml-24'>
@@ -387,8 +546,9 @@ const Detail = () => {
                       labelPlacement='outside'
                       value={comment.title}
                       onChange={handleCommentInputChange}
-                      placeholder='Enter the title'
+                      placeholder='Enter the title. Please limit to 50 characters or less.'
                       className='col-span-12 md:col-span-6 mb-6 md:mb-0 font-bold'
+                      maxLength={50}
                     />
 
                     <Textarea
@@ -398,16 +558,17 @@ const Detail = () => {
                       labelPlacement='outside'
                       value={comment.contents}
                       onChange={handleCommentInputChange}
-                      placeholder='Enter the contents'
+                      placeholder='Enter the contents. Please limit to 300 characters or less.'
                       className='col-span-12 md:col-span-6 mb-6 md:mb-0 font-bold'
+                      maxLength={300}
                     />
                     <Button
                       className='w-full'
                       color='primary'
                       variant='shadow'
-                      onPress={saveComment}
+                      onPress={isEditing ? handleUpdateComment : saveComment}
                     >
-                      작성하기
+                      {isEditing ? '수정하기' : '작성하기'}
                     </Button>
                   </div>
                 </Card>
@@ -422,9 +583,9 @@ const Detail = () => {
                         comments.map((comment) => (
                           <Card
                             key={comment.comment_id}
-                            className='w-full max-w-[340px]'
+                            className='w-full max-w-[337px] relative'
                           >
-                            <CardHeader className='justify-between'>
+                            <CardHeader className='justify-between mt-2 ml-2'>
                               <div className='flex gap-5'>
                                 <Avatar
                                   isBordered
@@ -441,28 +602,59 @@ const Detail = () => {
                                   </h5>
                                 </div>
                               </div>
-                              <Button
-                                className={
-                                  isFollowed
-                                    ? 'bg-transparent text-foreground border-default-200'
-                                    : ''
-                                }
-                                color='primary'
-                                radius='full'
-                                size='sm'
-                                variant={isFollowed ? 'bordered' : 'solid'}
-                                onPress={() => setIsFollowed(!isFollowed)}
-                              >
-                                {isFollowed ? 'Unfollow' : 'Follow'}
-                              </Button>
+
+                              {comment.user_id === session?.user.id && (
+                                <button
+                                  onClick={handleEllipsisToggle}
+                                  ref={toggleRef}
+                                >
+                                  <svg
+                                    name='ellipsis'
+                                    xmlns='http://www.w3.org/2000/svg'
+                                    fill='none'
+                                    viewBox='0 0 24 24'
+                                    strokeWidth={1.5}
+                                    stroke='currentColor'
+                                    className='w-6 h-6 mr-2'
+                                  >
+                                    <path
+                                      strokeLinecap='round'
+                                      strokeLinejoin='round'
+                                      d='M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z'
+                                    />
+                                  </svg>
+                                </button>
+                              )}
+
+                              {isOpen && (
+                                <div className='absolute w-20 pt-5 mt-10 mr-3 z-10 top-0 right-0'>
+                                  <Button
+                                    className='mb-1 font-bold'
+                                    onClick={() =>
+                                      handleEditButtonClick(comment)
+                                    }
+                                  >
+                                    Edit
+                                  </Button>
+                                  <Button
+                                    className='font-bold'
+                                    onClick={() =>
+                                      handleDeleteComment(comment.comment_id)
+                                    }
+                                  >
+                                    Delete
+                                  </Button>
+                                </div>
+                              )}
                             </CardHeader>
+
                             <CardBody className='m-2 px-3 py-0'>
                               <p className='text-ml font-bold'>
                                 {comment.title}
                               </p>
                               <span className='pt-2'>{comment.contents}</span>
                             </CardBody>
-                            <CardFooter className='gap-3'>
+                            <CardFooter className='ml-2 gap-3'>
                               <div className='flex gap-1'>
                                 {/* <p className='font-semibold text-default-400 text-sm'>
                                 4

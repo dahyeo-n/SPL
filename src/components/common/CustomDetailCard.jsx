@@ -60,7 +60,9 @@ export const CustomDetailCard = ({ place, isScrapped, onScrap, onUnscrap }) => {
             )}
           </Button>
         </CardHeader>
-        <div className='text-lg ml-3'>[평점] {place.rating ?? '없음'}</div>
+        <div className='text-lg ml-3'>
+          [NAVER 평점] {place.rating ?? '없음'}
+        </div>
         <div className='text-lg ml-3'>[위치] {place.address}</div>
         <div className='text-lg ml-3'>[운영시간] {place.operating_hours}</div>
         <div className='text-lg ml-3'>[연락처] {place.contact}</div>
