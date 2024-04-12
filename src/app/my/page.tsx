@@ -124,6 +124,9 @@ const My: React.FC = () => {
   };
 
   const updateUserProfile = async () => {
+    if (!session?.user) return;
+
+    const user_id = session.user.id;
     const { error } = await supabase
       .from('user_profiles')
       .update({
@@ -132,13 +135,39 @@ const My: React.FC = () => {
         user_type: updatedUserType,
         user_profile_image: profileImage,
       })
-      .eq('user_uid', session?.user?.id);
+      .eq('user_uid', user_id);
 
     if (error) {
       console.error('프로필 업데이트에 실패했습니다: ', error);
     } else {
-      alert('프로필이 성공적으로 업데이트되었습니다!');
-      fetchUserProfile(session?.user?.id!);
+      // 프로필 업데이트 성공 시, 사용자 댓글도 업데이트합니다.
+      const { error: commentsError } = await supabase
+        .from('comments')
+        .update({
+          nickname: updatedNickname,
+          user_profile_image: profileImage,
+        })
+        .eq('user_id', user_id);
+
+      if (commentsError) {
+        console.error('댓글 정보 업데이트에 실패했습니다: ', commentsError);
+      } else {
+        // 클라이언트 상태의 댓글 데이터도 업데이트합니다.
+        setUserComments((prevComments) =>
+          prevComments.map((comment) => {
+            if (comment.user_id === user_id) {
+              return {
+                ...comment,
+                nickname: updatedNickname,
+                user_profile_image: profileImage,
+              };
+            }
+            return comment;
+          })
+        );
+        alert('프로필이 성공적으로 업데이트되었습니다!');
+        fetchUserProfile(user_id);
+      }
     }
   };
 
@@ -336,12 +365,6 @@ const My: React.FC = () => {
                   type='file'
                   onChange={handleImageChange}
                 />
-                {/* <button
-                  className=' w-[300px] mt-2 px-4 py-2 bg-blue-500 text-white rounded-md'
-                  onClick={() => imageFile && uploadProfileImage()}
-                >
-                  이미지 변경하기
-                </button> */}
               </div>
 
               <div className='lg:col-span-2'>
