@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import supabase from '@/supabaseClient';
 
 import { useRouter } from 'next/navigation';
-import { USER_ALREADY_REGISTERED } from '@/constants/errorCode';
 
 import { Input } from '@nextui-org/react';
 import { EyeFilledIcon } from '../EyeFilledIcon';
@@ -20,8 +19,10 @@ const SignUpPage = () => {
   const [password, setPassword] = useState('');
 
   const [nicknameValid, setNicknameValid] = useState(true);
+  const [isNicknameUnique, setIsNicknameUnique] = useState<boolean>(true);
   const [userTypeValid, setUserTypeValid] = useState(true);
   const [emailValid, setEmailValid] = useState(true);
+  const [isEmailUnique, setIsEmailUnique] = useState<boolean>(true);
   const [pwValid, setPwValid] = useState(true);
 
   const [loading, setLoading] = useState(false);
@@ -58,17 +59,46 @@ const SignUpPage = () => {
     setPwValid(regExp.test(password));
   };
 
+  const checkNicknameUniqueness = async (
+    nickname: string
+  ): Promise<boolean> => {
+    const { data, error } = await supabase
+      .from('user_profiles')
+      .select('nickname')
+      .eq('nickname', nickname)
+      .maybeSingle();
+
+    return error ? false : data === null;
+  };
+
+  const checkEmailUniqueness = async (email: string): Promise<boolean> => {
+    const { data, error } = await supabase
+      .from('user_profiles')
+      .select('email')
+      .eq('email', email)
+      .maybeSingle();
+
+    return error ? false : data === null;
+  };
+
   const handleSubmitSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
 
     const isNicknameValid = validateNickname(nickname);
+    const isNicknameUnique = await checkNicknameUniqueness(nickname);
     const isUserTypeValid = validateUserType(userType);
+    const isEmailUnique = await checkEmailUniqueness(email);
+
     setNicknameValid(isNicknameValid);
+    setIsNicknameUnique(isNicknameUnique);
     setUserTypeValid(isUserTypeValid);
+    setIsEmailUnique(isEmailUnique);
 
     if (
       !isNicknameValid ||
+      !isNicknameUnique ||
       !isUserTypeValid ||
+      !isEmailUnique ||
       email.length === 0 ||
       password.length === 0 ||
       !emailValid ||
@@ -85,8 +115,6 @@ const SignUpPage = () => {
         email,
         password,
       });
-
-      console.log('회원가입 처리 후, 확인 데이터 => ', data.user);
 
       if (data.user && data.user.id) {
         const { error: insertError } = await supabase
@@ -112,16 +140,11 @@ const SignUpPage = () => {
       setEmail('');
       setPassword('');
 
+      console.log('회원가입 처리 후, 확인 데이터 => ', data.user);
       alert(`${nickname}님, 스플과 함께해주셔서 감사해요!
       스플이 ${nickname}님이 목표를 이룰 수 있게 도울게요 :)`);
       await supabase.auth.signOut();
       router.replace('/sign/signin');
-
-      if (error && error.message === USER_ALREADY_REGISTERED) {
-        alert('이미 가입된 이메일입니다.');
-        console.log(error);
-        return;
-      }
     } catch (error: unknown) {
       if (error instanceof Error) {
         setError(error.message);
@@ -129,19 +152,21 @@ const SignUpPage = () => {
       } else {
         console.error('알 수 없는 에러: ', error);
       }
-      setLoading(false);
       alert('회원가입 도중 오류가 발생하였습니다. 고객센터로 연락해주세요.');
+      setLoading(false);
       return;
     }
   };
 
-  const handleSubmitNickname = (e: any) => {
+  const handleSubmitNickname = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-
-    if (error.length !== 0) {
-      setError('');
-    }
     setNickname(value);
+
+    if (error.length !== 0 || !isNicknameUnique) {
+      setError('');
+      setIsNicknameUnique(true);
+    }
+
     setNicknameValid(validateNickname(value));
   };
 
@@ -156,11 +181,13 @@ const SignUpPage = () => {
 
   const handleSubmitEmail = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-
-    if (error.length !== 0) {
-      setError('');
-    }
     setEmail(value);
+
+    if (error.length !== 0 || isEmailUnique) {
+      setError('');
+      setIsEmailUnique(true);
+    }
+
     validateEmail(value);
   };
 
@@ -186,7 +213,7 @@ const SignUpPage = () => {
   const toggleVisibility = () => setIsVisible(!isVisible);
 
   return (
-    <div className='flex justify-center items-center flex-col space-y-4 w-full mx-auto my-40'>
+    <div className='flex justify-center items-center flex-col space-y-4 w-full mx-auto my-32'>
       <h1 className='text-4xl font-bold mb-2'>회원가입</h1>
       <form onSubmit={handleSubmitSignUp}>
         <div className='mb-3'>
@@ -208,6 +235,9 @@ const SignUpPage = () => {
             <div className='text-red-500'>
               * 닉네임을 1자 이상 15자 이하로 입력해주세요.
             </div>
+          )}
+          {!isNicknameUnique && (
+            <div className='text-red-500'>* 이미 존재하는 닉네임입니다.</div>
           )}
         </div>
 
@@ -248,6 +278,9 @@ const SignUpPage = () => {
             <div className='text-red-500'>
               * 유효한 이메일 방식으로 입력해주세요.
             </div>
+          )}
+          {!isEmailUnique && (
+            <div className='text-red-500'>* 이미 가입된 이메일입니다.</div>
           )}
         </div>
 

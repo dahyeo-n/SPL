@@ -14,8 +14,10 @@ import Link from 'next/link';
 const SignInPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+
   const [emailValid, setEmailValid] = useState(true);
   const [pwValid, setPwValid] = useState(true);
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [isVisible, setIsVisible] = React.useState(false);
@@ -43,13 +45,12 @@ const SignInPage = () => {
 
   const handleSubmitSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
 
     if (email.length === 0 || password.length === 0) {
       setError('모든 입력칸을 올바르게 작성해주세요.');
       return;
     }
-
-    setLoading(true);
 
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -64,6 +65,7 @@ const SignInPage = () => {
           '아이디(로그인 전용 아이디) 또는 비밀번호를 잘못 입력했습니다. 입력하신 내용을 다시 확인해주세요.'
         );
         console.log(error);
+        setLoading(false);
         return;
       }
 
