@@ -5,8 +5,9 @@ import { usePathname, useRouter } from 'next/navigation';
 
 import supabase from '@/supabaseClient';
 import { Session } from '@supabase/supabase-js';
-
 import { CustomDetailCard } from '../../../components/common/CustomDetailCard';
+import Map from '../../../components/Map';
+
 import mediumZoom from 'medium-zoom';
 import { useTheme } from 'next-themes';
 
@@ -506,6 +507,9 @@ const Detail = () => {
                     onUnscrap={removeScrap}
                   />
                 </React.Fragment>
+                <Card className='ml-2 w-[480px]'>
+                  <Map address={studyPlace.address} />
+                </Card>
               </div>
 
               <div className='lg:col-span-8 ml-24'>
