@@ -76,8 +76,8 @@ const Detail = () => {
   );
 
   const { theme } = useTheme();
-  const toggleRef = useRef<HTMLButtonElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
+  const toggleRef = useRef<HTMLButtonElement>(null);
 
   // ellipsis 토글 상태 관리
   const handleEllipsisToggle = (commentId: string) => {
@@ -668,21 +668,6 @@ const Detail = () => {
                             </CardBody>
                             <CardFooter className='ml-2 gap-3'>
                               <div className='flex gap-1'>
-                                {/* <p className='font-semibold text-default-400 text-sm'>
-                                4
-                              </p>
-                              <p className=' text-default-400 text-sm'>
-                                Following
-                              </p>
-                            </div>
-                            <div className='flex gap-1'>
-                              <p className='font-semibold text-default-400 text-sm'>
-                                97.1K
-                              </p>
-                              <p className='text-default-400 text-sm'>
-                                Followers
-                              </p> */}
-
                                 <p className='text-default-400 text-sm'>
                                   {formatDateTime(comment.created_at)}
                                 </p>

@@ -70,7 +70,6 @@ const My: React.FC = () => {
 
   const [scrappedPlaces, setScrappedPlaces] = useState<StudyPlace[]>([]);
   const [userComments, setUserComments] = useState<Comment[]>([]);
-  const [isFollowed, setIsFollowed] = React.useState(false);
 
   const router = useRouter();
   const userTypes = ['중고등학생', '수험생', '대학생', '고시생', '직장인'];
@@ -558,21 +557,8 @@ const My: React.FC = () => {
                                   </h5>
                                 </div>
                               </div>
-                              <Button
-                                className={
-                                  isFollowed
-                                    ? 'bg-transparent text-foreground border-default-200'
-                                    : ''
-                                }
-                                color='primary'
-                                radius='full'
-                                size='sm'
-                                variant={isFollowed ? 'bordered' : 'solid'}
-                                onPress={() => setIsFollowed(!isFollowed)}
-                              >
-                                {isFollowed ? 'Unfollow' : 'Follow'}
-                              </Button>
                             </CardHeader>
+
                             <CardBody className='px-3 py-2'>
                               <p className='mx-2 text-ml font-bold'>
                                 {comment.title}
@@ -582,19 +568,6 @@ const My: React.FC = () => {
                               </span>
                             </CardBody>
                             <CardFooter className='flex flex-col'>
-                              {/* <div className='flex gap-1'> */}
-                              {/* <p className='font-semibold text-default-400 text-small'>
-                                4
-                              </p>
-                              <p className=' text-default-400 text-small'>
-                                Following
-                              </p>
-                            </div>
-                            <div className='flex gap-1'>
-                              <p className='font-semibold text-default-400 text-small'>
-                                97.1K
-                              </p> */}
-
                               <Link
                                 key={comment.comment_id}
                                 href={`/detail/${comment.study_place?.place_id}`}
