@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import supabase from '@/supabaseClient';
+import supabase from '../../supabaseClient';
 import { Session } from '@supabase/supabase-js';
 
 import { CustomMainCard } from '../../components/common/CustomMainCard';
@@ -17,6 +17,7 @@ import {
   Spacer,
   Select,
   SelectItem,
+  Link,
 } from '@nextui-org/react';
 
 interface UserProfile {
@@ -527,9 +528,18 @@ const My: React.FC = () => {
                     <div className='space-y-1 py-2 mx-2'>
                       <div className='flex flex-wrap gap-4'>
                         {userComments.map((comment) => (
+                          // <Link
+                          //   key={comment.comment_id}
+                          //   href={`/detail/${comment.study_place?.place_id}`}
+                          // >
                           <Card
-                            key={comment.comment_id}
                             className='w-full max-w-[330px]'
+                            key={comment.comment_id}
+                            onClick={() => {
+                              router.push(
+                                `/detail/${comment.study_place?.place_id}`
+                              );
+                            }}
                           >
                             <CardHeader className='justify-between'>
                               <div className='flex gap-5'>
@@ -585,16 +595,21 @@ const My: React.FC = () => {
                                 97.1K
                               </p> */}
 
-                              <p className='text-default-500 text-sm'>
-                                {comment.study_place?.place_name}
-                              </p>
+                              <Link
+                                key={comment.comment_id}
+                                href={`/detail/${comment.study_place?.place_id}`}
+                              >
+                                <p className='text-default-500 text-sm'>
+                                  {comment.study_place?.place_name}
+                                </p>
+                              </Link>
 
                               <p className='text-default-400 text-sm'>
                                 {formatDateTime(comment.created_at)}
                               </p>
-                              {/* </div> */}
                             </CardFooter>
                           </Card>
+                          // </Link>
                         ))}
                       </div>
                     </div>

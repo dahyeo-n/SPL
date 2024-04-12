@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 
-import supabase from '@/supabaseClient';
+import supabase from '.././../../supabaseClient';
 import { Session } from '@supabase/supabase-js';
 import { CustomDetailCard } from '../../../components/common/CustomDetailCard';
 import Map from '../../../components/Map';
