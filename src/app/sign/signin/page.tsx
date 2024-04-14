@@ -2,14 +2,15 @@
 
 import React, { useState } from 'react';
 import supabase from '@/supabaseClient';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { INVALID_LOGIN_CREDENTIALS } from '@/constants/errorCode';
+import KakaoLoginButton from '../../../components/KakaoLoginButton';
 
 import { Input } from '@nextui-org/react';
 import { EyeFilledIcon } from '../EyeFilledIcon';
 import { EyeSlashFilledIcon } from '../EyeSlashFilledIcon';
 import { Button } from '@nextui-org/react';
-import Link from 'next/link';
 
 const SignInPage = () => {
   const [email, setEmail] = useState('');
@@ -172,6 +173,7 @@ const SignInPage = () => {
               {loading ? '처리 중...' : '로그인하기'}
             </Button>
           </div>
+          <KakaoLoginButton />
         </div>
       </form>
       <Link href='/sign/signup'>

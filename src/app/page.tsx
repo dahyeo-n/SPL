@@ -40,7 +40,17 @@ const Main: React.FC = () => {
     const getUserSession = async () => {
       try {
         const { data, error } = await supabase.auth.getSession();
+
         if (error) throw error;
+
+        if (data?.session?.user) {
+          const isKakaoLogin =
+            data?.session?.user.app_metadata.provider === 'kakao';
+          if (isKakaoLogin) {
+            saveOrUpdateUserProfile(data?.session?.user);
+          }
+        }
+
         setSession(data.session);
         console.log('로그인 데이터: ', data);
       } catch (error) {
@@ -51,6 +61,28 @@ const Main: React.FC = () => {
 
     getUserSession();
   }, [router]);
+
+  const saveOrUpdateUserProfile = async (user: any) => {
+    try {
+      const { data, error } = await supabase.from('user_profiles').upsert(
+        {
+          user_uid: user.id,
+          nickname: user.user_metadata?.name,
+          email: user.email,
+          user_type: 'kakao',
+          user_profile_image: user.user_metadata?.avatar_url ?? '',
+        },
+        {
+          onConflict: 'email', // 이메일 기준으로 충돌 해결
+        }
+      );
+
+      if (error) throw error;
+      console.log('프로필 데이터: ', data);
+    } catch (error) {
+      console.error('프로필 저장 에러: ', error);
+    }
+  };
 
   useEffect(() => {
     if (session?.user && typeof session.user.email === 'string') {
