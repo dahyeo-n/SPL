@@ -4,9 +4,11 @@ import React, { useState } from 'react';
 import supabase from '@/supabaseClient';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+
 import { INVALID_LOGIN_CREDENTIALS } from '@/constants/errorCode';
 import KakaoLoginButton from '../../../components/KakaoLoginButton';
 import GoogleLoginButton from '../../../components/GoogleLoginButton';
+import GithubLoginButton from '../../../components/GithubLoginButton';
 
 import { Input } from '@nextui-org/react';
 import { EyeFilledIcon } from '../EyeFilledIcon';
@@ -107,7 +109,7 @@ const SignInPage = () => {
   const toggleVisibility = () => setIsVisible(!isVisible);
 
   return (
-    <div className='flex justify-center items-center flex-col space-y-4 w-full mx-auto my-40'>
+    <div className='flex justify-center items-center flex-col space-y-4 w-full mx-auto my-36'>
       <h1 className='text-4xl font-bold mb-2'>로그인</h1>
       <form onSubmit={handleSubmitSignIn}>
         <div className='mb-3'>
@@ -174,8 +176,11 @@ const SignInPage = () => {
               {loading ? '처리 중...' : '로그인하기'}
             </Button>
           </div>
-          <KakaoLoginButton />
-          <GoogleLoginButton />
+          <div className='flex justify-evenly'>
+            <KakaoLoginButton />
+            <GoogleLoginButton />
+            <GithubLoginButton />
+          </div>
         </div>
       </form>
       <Link href='/sign/signup'>
