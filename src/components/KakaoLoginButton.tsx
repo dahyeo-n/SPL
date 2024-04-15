@@ -25,7 +25,7 @@ const KakaoLoginButton: React.FC = () => {
       <img
         className='w-[50px] my-4'
         src='/images/kakao-login-image.png'
-        alt='카카오로 로그인하기'
+        alt='카카오 계정으로 로그인하기'
       />
     </div>
   );

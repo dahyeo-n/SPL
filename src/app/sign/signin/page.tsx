@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { INVALID_LOGIN_CREDENTIALS } from '@/constants/errorCode';
 import KakaoLoginButton from '../../../components/KakaoLoginButton';
+import GoogleLoginButton from '../../../components/GoogleLoginButton';
 
 import { Input } from '@nextui-org/react';
 import { EyeFilledIcon } from '../EyeFilledIcon';
@@ -174,6 +175,7 @@ const SignInPage = () => {
             </Button>
           </div>
           <KakaoLoginButton />
+          <GoogleLoginButton />
         </div>
       </form>
       <Link href='/sign/signup'>

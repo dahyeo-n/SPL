@@ -44,10 +44,15 @@ const Main: React.FC = () => {
         if (error) throw error;
 
         if (data?.session?.user) {
-          const isKakaoLogin =
-            data?.session?.user.app_metadata.provider === 'kakao';
-          if (isKakaoLogin) {
-            saveOrUpdateUserProfile(data?.session?.user);
+          const provider = data.session.user.app_metadata.provider;
+
+          const isSocialLogin =
+            provider === 'kakao' ||
+            provider === 'google' ||
+            provider === 'github';
+
+          if (isSocialLogin) {
+            saveOrUpdateUserProfile(data?.session?.user, provider);
           }
         }
 
@@ -62,25 +67,58 @@ const Main: React.FC = () => {
     getUserSession();
   }, [router]);
 
-  const saveOrUpdateUserProfile = async (user: any) => {
+  const saveOrUpdateUserProfile = async (user: any, provider: string) => {
+    const { data: existingProfiles, error: profileError } = await supabase
+      .from('user_profiles')
+      .select('nickname, user_profile_image')
+      .eq('email', user.email)
+      .single();
+
+    if (profileError) {
+      console.error('프로필 조회 에러: ', profileError);
+      return;
+    }
+
+    let nickname = user.user_metadata?.name || user.email.split('@')[0];
+    let profileImageUrl =
+      existingProfiles?.user_profile_image || '/images/default-profile.jpg';
+
+    if (existingProfiles) return;
+
+    if (!existingProfiles) {
+      const { data: existingNicknames } = await supabase
+        .from('user_profiles')
+        .select('nickname')
+        .eq('nickname', nickname);
+
+      if (existingNicknames && existingNicknames.length > 0) {
+        nickname += `_${Date.now()}`;
+      }
+
+      profileImageUrl = user.user_metadata?.avatar_url || profileImageUrl;
+    }
     try {
       const { data, error } = await supabase.from('user_profiles').upsert(
         {
           user_uid: user.id,
-          nickname: user.user_metadata?.name,
+          nickname,
           email: user.email,
-          user_type: 'kakao',
-          user_profile_image: user.user_metadata?.avatar_url ?? '',
+          user_type: provider,
+          user_profile_image: profileImageUrl,
         },
         {
-          onConflict: 'email', // 이메일 기준으로 충돌 해결
+          onConflict: 'email',
         }
       );
 
-      if (error) throw error;
+      if (error) {
+        console.error('프로필 저장 에러: ', error);
+        return;
+      }
+
       console.log('프로필 데이터: ', data);
     } catch (error) {
-      console.error('프로필 저장 에러: ', error);
+      console.error('프로필 저장 중 예외 발생: ', error);
     }
   };
 
@@ -91,12 +129,16 @@ const Main: React.FC = () => {
   }, [session?.user]);
 
   const fetchUserProfile = async (email: string) => {
+    if (!session?.user || typeof session.user.email !== 'string') {
+      return;
+    }
+
     try {
       const { data, error } = await supabase
         .from('user_profiles')
         .select('nickname')
         .eq('email', email)
-        .single();
+        .maybeSingle();
 
       if (error) {
         throw error;
@@ -106,7 +148,7 @@ const Main: React.FC = () => {
         setNickname(data.nickname);
       }
     } catch (error) {
-      console.error('사용자 프로필을 불러오는 데 실패했습니다:', error);
+      console.error('사용자 프로필을 불러오는 데 실패했습니다: ', error);
     }
   };
 
