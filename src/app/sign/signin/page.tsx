@@ -14,6 +14,7 @@ import { Input } from '@nextui-org/react';
 import { EyeFilledIcon } from '../EyeFilledIcon';
 import { EyeSlashFilledIcon } from '../EyeSlashFilledIcon';
 import { Button } from '@nextui-org/react';
+import { toast } from 'react-toastify';
 
 const SignInPage = () => {
   const [email, setEmail] = useState('');
@@ -65,7 +66,7 @@ const SignInPage = () => {
       console.log('로그인 처리 후 확인 데이터 => ', data);
 
       if (error && error.message === INVALID_LOGIN_CREDENTIALS) {
-        alert(
+        toast.error(
           '아이디(로그인 전용 아이디) 또는 비밀번호를 잘못 입력했습니다. 입력하신 내용을 다시 확인해주세요.'
         );
         console.log(error);
@@ -75,13 +76,17 @@ const SignInPage = () => {
 
       setEmail('');
       setPassword('');
-      alert(`오늘도 함께해주셔서 감사해요! 성공적으로 로그인되었어요 :)`);
       router.replace('/');
+      setTimeout(() => {
+        toast.success(`오늘도 함께해주셔서 감사해요! 로그인되었어요 :)`);
+      }, 500);
     } catch (error: any) {
       setError(error.message);
+      toast.error(
+        '로그인 도중 오류가 발생하였습니다. 고객센터로 연락해주세요.'
+      );
       setLoading(false);
       console.error(error);
-      alert('로그인 도중 오류가 발생하였습니다. 고객센터로 연락해주세요.');
     }
   };
 

@@ -3,7 +3,9 @@ import Head from 'next/head';
 
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
+
 import './globals.css';
+import 'react-toastify/dist/ReactToastify.css';
 
 import QueryProvider from './provider';
 import NavBar from '@/components/common/Navbar';

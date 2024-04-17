@@ -4,13 +4,14 @@ import React, { useState } from 'react';
 import supabase from '@/supabaseClient';
 
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 import { Input } from '@nextui-org/react';
 import { EyeFilledIcon } from '../EyeFilledIcon';
 import { EyeSlashFilledIcon } from '../EyeSlashFilledIcon';
 import { Button } from '@nextui-org/react';
 import { Select, SelectItem } from '@nextui-org/react';
-import Link from 'next/link';
+import { toast } from 'react-toastify';
 
 const SignUpPage = () => {
   const [nickname, setNickname] = useState('');
@@ -111,7 +112,7 @@ const SignUpPage = () => {
     setLoading(true);
 
     try {
-      const { data, error } = await supabase.auth.signUp({
+      const { data } = await supabase.auth.signUp({
         email,
         password,
       });
@@ -136,15 +137,14 @@ const SignUpPage = () => {
       } else {
         throw new Error('User의 ID가 없습니다.');
       }
-
-      setEmail('');
-      setPassword('');
-
       console.log('회원가입 처리 후, 확인 데이터 => ', data.user);
-      alert(`${nickname}님, 스플과 함께해주셔서 감사해요!
-      스플이 ${nickname}님이 목표를 이룰 수 있게 도울게요 :)`);
-      await supabase.auth.signOut();
+
+      supabase.auth.signOut();
       router.replace('/sign/signin');
+      setTimeout(() => {
+        toast.success(`${nickname}님, 스플과 함께해주셔서 감사해요!
+      스플이 ${nickname}님이 목표를 이룰 수 있게 도울게요 :)`);
+      }, 500);
     } catch (error: unknown) {
       if (error instanceof Error) {
         setError(error.message);
@@ -152,7 +152,9 @@ const SignUpPage = () => {
       } else {
         console.error('알 수 없는 에러: ', error);
       }
-      alert('회원가입 도중 오류가 발생하였습니다. 고객센터로 연락해주세요.');
+      toast.error(
+        '회원가입 도중 오류가 발생하였습니다. 고객센터로 연락해주세요.'
+      );
       setLoading(false);
       return;
     }

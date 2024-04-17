@@ -10,6 +10,7 @@ import { CustomMainCard } from '../components/common/CustomMainCard';
 import { useRouter } from 'next/navigation';
 
 import { Spacer } from '@nextui-org/react';
+import { ToastContainer, toast } from 'react-toastify';
 
 interface StudyPlace {
   id: string;
@@ -59,7 +60,7 @@ const Main: React.FC = () => {
         setSession(data.session);
         console.log('로그인 데이터: ', data);
       } catch (error) {
-        alert('Session 처리에 오류가 발생했습니다.');
+        toast.error('Session 처리에 오류가 발생했습니다.');
         console.log(error);
       }
     };
@@ -194,6 +195,7 @@ const Main: React.FC = () => {
   return (
     <>
       <Header />
+      <ToastContainer />
       <div>
         <main className='mx-20 lg:px-8'>
           {/* <div className='flex items-baseline justify-between pb-2 pt-6'> */}
@@ -236,7 +238,7 @@ const Main: React.FC = () => {
                 <h3 className='sr-only'>Categories</h3>
                 <div className='space-y-6 pb-8 text-xl font-medium text-gray-900 dark:text-gray-200'>
                   {/* 필터 처리 로직 완성되면 map으로 돌릴 거임 */}
-                  <div>{/* <button>추천</button> */}</div>
+                  {/* <div><button>추천</button></div> */}
                   <div>
                     <button
                       type='button'
