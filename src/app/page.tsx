@@ -11,6 +11,7 @@ import { useRouter } from 'next/navigation';
 
 import { Spacer } from '@nextui-org/react';
 import { ToastContainer, toast } from 'react-toastify';
+import Link from 'next/link';
 
 interface StudyPlace {
   id: string;
@@ -225,9 +226,19 @@ const Main: React.FC = () => {
             <div className='pb-4'>
               {/* flex items-center justify-start */}
               <div className='ml-48 text-2xl font-bold text-gray-700 dark:text-gray-300'>
-                {nickname
-                  ? `${nickname}님이 목표와 꿈을 이루시도록 스플이 함께할게요!`
-                  : '3초만에 로그인해서 다양한 서비스를 만나보세요!'}
+                {nickname ? (
+                  `${nickname}님이 목표와 꿈을 이루시도록 스플이 함께할게요!`
+                ) : (
+                  <>
+                    3초만에{' '}
+                    <Link href='/sign/signin'>
+                      <span className='text-indigo-500 underline decoration-indigo-500'>
+                        로그인
+                      </span>
+                    </Link>{' '}
+                    하셔서 다양한 서비스를 만나보세요!
+                  </>
+                )}
               </div>
             </div>
           </div>
