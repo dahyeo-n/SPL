@@ -7,6 +7,8 @@ import { Session } from '@supabase/supabase-js';
 import { CustomMainCard } from '../../components/common/CustomMainCard';
 import { useRouter } from 'next/navigation';
 
+import { ToastContainer, toast } from 'react-toastify';
+
 import {
   Card,
   CardHeader,
@@ -82,7 +84,7 @@ const My: React.FC = () => {
         setSession(data.session);
         console.log('로그인 데이터: ', data);
       } catch (error) {
-        alert('Session 처리에 오류가 발생했습니다.');
+        toast.error('Session 처리에 오류가 발생했습니다.');
         console.log(error);
       }
     };
@@ -140,7 +142,6 @@ const My: React.FC = () => {
     if (error) {
       console.error('프로필 업데이트에 실패했습니다: ', error);
     } else {
-      // 프로필 업데이트 성공 시, 사용자 댓글도 업데이트합니다.
       const { error: commentsError } = await supabase
         .from('comments')
         .update({
@@ -152,7 +153,6 @@ const My: React.FC = () => {
       if (commentsError) {
         console.error('댓글 정보 업데이트에 실패했습니다: ', commentsError);
       } else {
-        // 클라이언트 상태의 댓글 데이터도 업데이트합니다.
         setUserComments((prevComments) =>
           prevComments.map((comment) => {
             if (comment.user_id === user_id) {
@@ -165,7 +165,7 @@ const My: React.FC = () => {
             return comment;
           })
         );
-        alert('프로필이 성공적으로 업데이트되었습니다!');
+        toast.success('프로필이 성공적으로 업데이트되었습니다!');
         fetchUserProfile(user_id);
       }
     }
@@ -188,7 +188,7 @@ const My: React.FC = () => {
       .upload(fileName, imageFile);
 
     if (error) {
-      console.error('이미지 업로드에 실패했습니다:', error);
+      console.error('이미지 업로드에 실패했습니다: ', error);
       return;
     }
 
@@ -306,6 +306,7 @@ const My: React.FC = () => {
 
   return (
     <div>
+      <ToastContainer />
       <main className='mx-20 lg:px-8'>
         <div className='flex items-baseline justify-start pb-2 pt-6'>
           <h1 className='text-4xl font-bold tracking-tight text-gray-900 dark:text-gray-200'>

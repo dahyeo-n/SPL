@@ -5,6 +5,8 @@ import supabase from '@/supabaseClient';
 
 import { useRouter } from 'next/navigation';
 
+import { ToastContainer, toast } from 'react-toastify';
+
 const MyPageLayout = ({ children }: { children: React.ReactNode }) => {
   const [shouldRender, setShouldRender] = useState<boolean>(false);
   const router = useRouter();
@@ -14,7 +16,7 @@ const MyPageLayout = ({ children }: { children: React.ReactNode }) => {
 
     const getUserSession = async () => {
       try {
-        const { data, error } = await supabase.auth.getSession();
+        const { data } = await supabase.auth.getSession();
         console.log('data => ', data);
 
         if (!checkUnmounted) {
@@ -23,14 +25,16 @@ const MyPageLayout = ({ children }: { children: React.ReactNode }) => {
           if (isLogin) {
             setShouldRender(true);
           } else {
-            alert('로그인이 필요한 서비스입니다. 로그인 페이지로 이동합니다.');
+            toast.info(
+              '로그인이 필요한 서비스입니다. 로그인 페이지로 이동합니다.'
+            );
             router.replace('/sign/signin');
             return;
           }
         }
       } catch (error) {
         console.error(`Error: ${error}`);
-        alert(
+        toast.error(
           '로그인 상태가 불안정합니다. 새로고침 후에도 지속될 시, 고객센터로 연락해주세요.'
         );
       }
@@ -43,7 +47,12 @@ const MyPageLayout = ({ children }: { children: React.ReactNode }) => {
     };
   }, [router]);
 
-  return <div>{shouldRender && children}</div>;
+  return (
+    <div>
+      {shouldRender && children}
+      <ToastContainer />
+    </div>
+  );
 };
 
 export default MyPageLayout;

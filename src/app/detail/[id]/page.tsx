@@ -10,6 +10,7 @@ import Map from '../../../components/Map';
 
 import mediumZoom from 'medium-zoom';
 import { useTheme } from 'next-themes';
+import { toast } from 'react-toastify';
 
 import {
   Image,
@@ -198,11 +199,11 @@ const Detail = () => {
 
   const checkLoginAndRedirect = () => {
     if (!session) {
-      alert('로그인이 필요한 서비스입니다. 로그인 페이지로 이동합니다.');
-      router.push('/sign/signin'); // 로그인 페이지로 Redirect
-      return false; // 로그인하지 않은 상태
+      toast.info('로그인이 필요한 서비스입니다. 로그인 페이지로 이동합니다.');
+      router.push('/sign/signin');
+      return false;
     }
-    return true; // 로그인한 상태
+    return true;
   };
 
   useEffect(() => {
@@ -213,7 +214,7 @@ const Detail = () => {
         setSession(data.session);
         console.log('로그인 데이터: ', data);
       } catch (error) {
-        alert('Session 처리에 오류가 발생했습니다.');
+        toast.error('Session 처리에 오류가 발생했습니다.');
         console.log(error);
       }
     };
@@ -288,14 +289,14 @@ const Detail = () => {
           ]);
 
         if (error) {
-          console.error('스크랩 추가 실패', error);
+          toast.error('스크랩 추가 실패');
         } else {
           setIsScrapped(true);
           localStorage.setItem('isScrapped', 'true');
-          console.log('스크랩 추가 성공', data);
+          toast.success('스크랩되었습니다.');
         }
       } catch (error) {
-        console.error('스크랩 추가 중 오류 발생: ', error);
+        toast.error('스크랩 추가 중 오류 발생');
       }
     }
   };
@@ -316,11 +317,11 @@ const Detail = () => {
       console.log('삭제 응답: ', data, error);
 
       if (error) {
-        console.error('스크랩 취소 실패', error);
+        toast.error('스크랩 취소 실패');
       } else {
         setIsScrapped(false);
         localStorage.setItem('isScrapped', 'false');
-        console.log('스크랩 취소 성공', data);
+        toast.success('스크랩 취소되었습니다.');
       }
     }
   };
@@ -356,7 +357,7 @@ const Detail = () => {
     if (!checkLoginAndRedirect()) return;
 
     if (!isCommentValid()) {
-      alert('평점과 댓글 제목과 내용을 모두 입력해주세요.');
+      toast.error('평점과 댓글 제목과 내용을 모두 입력해주세요.');
       return;
     }
 
@@ -374,16 +375,17 @@ const Detail = () => {
       ]);
 
       if (error) {
-        alert('댓글을 저장하는 데 실패했습니다.');
+        toast.error('댓글을 저장하는 데 실패했습니다.');
         console.error('Error saving comment: ', error);
       } else if (data) {
-        setComments((currentComments) => [...currentComments, data[0]]);
+        setComments((currentComments) => [data[0], ...currentComments]);
       }
 
       setComment({ title: '', contents: '', rating: '' });
       console.log('Comment saved successfully: ', data);
+      toast.success('댓글이 저장되었습니다.');
     } catch (error) {
-      alert('댓글을 저장하는 데 실패했습니다.');
+      toast.error('댓글을 저장하는 데 실패했습니다.');
       console.error('Error saving comment: ', error);
     }
   };
@@ -417,7 +419,7 @@ const Detail = () => {
 
   const handleUpdateComment = async () => {
     if (!isCommentValid() || !editingCommentId) {
-      alert('모든 필드를 올바르게 입력해주세요.');
+      toast.error('모든 필드를 올바르게 입력해주세요.');
       return;
     }
 
@@ -451,7 +453,7 @@ const Detail = () => {
       setEditingCommentId(null);
       setComment({ title: '', contents: '', rating: '' });
     } catch (error) {
-      alert('댓글 수정에 실패했습니다.');
+      toast.error('댓글 수정에 실패했습니다.');
       console.error('Error updating comment: ', error);
     }
   };
@@ -477,7 +479,7 @@ const Detail = () => {
         currentComments.filter((comment) => comment.comment_id !== commentId)
       );
     } catch (error) {
-      alert('댓글 삭제에 실패했습니다.');
+      toast.error('댓글 삭제에 실패했습니다.');
       console.error('Error deleting comment: ', error);
     }
   };

@@ -2,20 +2,27 @@
 
 import React, { useState } from 'react';
 import supabase from '@/supabaseClient';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+
 import { INVALID_LOGIN_CREDENTIALS } from '@/constants/errorCode';
+import KakaoLoginButton from '../../../components/KakaoLoginButton';
+import GoogleLoginButton from '../../../components/GoogleLoginButton';
+import GithubLoginButton from '../../../components/GithubLoginButton';
 
 import { Input } from '@nextui-org/react';
 import { EyeFilledIcon } from '../EyeFilledIcon';
 import { EyeSlashFilledIcon } from '../EyeSlashFilledIcon';
 import { Button } from '@nextui-org/react';
-import Link from 'next/link';
+import { toast } from 'react-toastify';
 
 const SignInPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+
   const [emailValid, setEmailValid] = useState(true);
   const [pwValid, setPwValid] = useState(true);
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [isVisible, setIsVisible] = React.useState(false);
@@ -43,13 +50,12 @@ const SignInPage = () => {
 
   const handleSubmitSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
 
     if (email.length === 0 || password.length === 0) {
       setError('모든 입력칸을 올바르게 작성해주세요.');
       return;
     }
-
-    setLoading(true);
 
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -60,22 +66,27 @@ const SignInPage = () => {
       console.log('로그인 처리 후 확인 데이터 => ', data);
 
       if (error && error.message === INVALID_LOGIN_CREDENTIALS) {
-        alert(
+        toast.error(
           '아이디(로그인 전용 아이디) 또는 비밀번호를 잘못 입력했습니다. 입력하신 내용을 다시 확인해주세요.'
         );
         console.log(error);
+        setLoading(false);
         return;
       }
 
       setEmail('');
       setPassword('');
-      alert(`오늘도 함께해주셔서 감사해요! 성공적으로 로그인되었어요 :)`);
       router.replace('/');
+      setTimeout(() => {
+        toast.success(`오늘도 함께해주셔서 감사해요! 로그인되었어요 :)`);
+      }, 500);
     } catch (error: any) {
       setError(error.message);
+      toast.error(
+        '로그인 도중 오류가 발생하였습니다. 고객센터로 연락해주세요.'
+      );
       setLoading(false);
       console.error(error);
-      alert('로그인 도중 오류가 발생하였습니다. 고객센터로 연락해주세요.');
     }
   };
 
@@ -103,7 +114,7 @@ const SignInPage = () => {
   const toggleVisibility = () => setIsVisible(!isVisible);
 
   return (
-    <div className='flex justify-center items-center flex-col space-y-4 w-full mx-auto my-40'>
+    <div className='flex justify-center items-center flex-col space-y-4 w-full mx-auto my-36'>
       <h1 className='text-4xl font-bold mb-2'>로그인</h1>
       <form onSubmit={handleSubmitSignIn}>
         <div className='mb-3'>
@@ -169,6 +180,11 @@ const SignInPage = () => {
             >
               {loading ? '처리 중...' : '로그인하기'}
             </Button>
+          </div>
+          <div className='flex justify-evenly'>
+            <KakaoLoginButton />
+            <GoogleLoginButton />
+            <GithubLoginButton />
           </div>
         </div>
       </form>

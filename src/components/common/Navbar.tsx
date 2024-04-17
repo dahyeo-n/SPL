@@ -10,6 +10,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { Badge, Button, Switch, Link } from '@nextui-org/react';
 import { NotificationIcon } from './NotificationIcon';
 import { ThemeSwitcher } from '../theme/ThemeSwitcher';
+import { ToastContainer, toast } from 'react-toastify';
 
 const Navbar: React.FC = () => {
   const [session, setSession] = useState<Session | null>(null);
@@ -25,7 +26,7 @@ const Navbar: React.FC = () => {
         if (error) throw error;
         setSession(data.session);
       } catch (error) {
-        alert('Session 처리에 오류가 발생했습니다.');
+        toast.error('Session 처리에 오류가 발생했습니다.');
         console.log(error);
       }
     };
@@ -142,6 +143,7 @@ const Navbar: React.FC = () => {
             </div>
           </>
         )}
+        <ToastContainer />
       </div>
     </div>
   );

@@ -10,6 +10,7 @@ import { CustomMainCard } from '../components/common/CustomMainCard';
 import { useRouter } from 'next/navigation';
 
 import { Spacer } from '@nextui-org/react';
+import { ToastContainer, toast } from 'react-toastify';
 
 interface StudyPlace {
   id: string;
@@ -40,17 +41,87 @@ const Main: React.FC = () => {
     const getUserSession = async () => {
       try {
         const { data, error } = await supabase.auth.getSession();
+
         if (error) throw error;
+
+        if (data?.session?.user) {
+          const provider = data.session.user.app_metadata.provider;
+
+          const isSocialLogin =
+            provider === 'kakao' ||
+            provider === 'google' ||
+            provider === 'github';
+
+          if (isSocialLogin) {
+            saveOrUpdateUserProfile(data?.session?.user, provider);
+          }
+        }
+
         setSession(data.session);
         console.log('로그인 데이터: ', data);
       } catch (error) {
-        alert('Session 처리에 오류가 발생했습니다.');
+        toast.error('Session 처리에 오류가 발생했습니다.');
         console.log(error);
       }
     };
 
     getUserSession();
   }, [router]);
+
+  const saveOrUpdateUserProfile = async (user: any, provider: string) => {
+    const { data: existingProfiles, error: profileError } = await supabase
+      .from('user_profiles')
+      .select('nickname, user_profile_image')
+      .eq('email', user.email)
+      .single();
+
+    if (profileError) {
+      console.error('프로필 조회 에러: ', profileError);
+      return;
+    }
+
+    let nickname = user.user_metadata?.name || user.email.split('@')[0];
+    let profileImageUrl =
+      existingProfiles?.user_profile_image || '/images/default-profile.jpg';
+
+    if (existingProfiles) return;
+
+    if (!existingProfiles) {
+      const { data: existingNicknames } = await supabase
+        .from('user_profiles')
+        .select('nickname')
+        .eq('nickname', nickname);
+
+      if (existingNicknames && existingNicknames.length > 0) {
+        nickname += `_${Date.now()}`;
+      }
+
+      profileImageUrl = user.user_metadata?.avatar_url || profileImageUrl;
+    }
+    try {
+      const { data, error } = await supabase.from('user_profiles').upsert(
+        {
+          user_uid: user.id,
+          nickname,
+          email: user.email,
+          user_type: provider,
+          user_profile_image: profileImageUrl,
+        },
+        {
+          onConflict: 'email',
+        }
+      );
+
+      if (error) {
+        console.error('프로필 저장 에러: ', error);
+        return;
+      }
+
+      console.log('프로필 데이터: ', data);
+    } catch (error) {
+      console.error('프로필 저장 중 예외 발생: ', error);
+    }
+  };
 
   useEffect(() => {
     if (session?.user && typeof session.user.email === 'string') {
@@ -59,12 +130,16 @@ const Main: React.FC = () => {
   }, [session?.user]);
 
   const fetchUserProfile = async (email: string) => {
+    if (!session?.user || typeof session.user.email !== 'string') {
+      return;
+    }
+
     try {
       const { data, error } = await supabase
         .from('user_profiles')
         .select('nickname')
         .eq('email', email)
-        .single();
+        .maybeSingle();
 
       if (error) {
         throw error;
@@ -74,7 +149,7 @@ const Main: React.FC = () => {
         setNickname(data.nickname);
       }
     } catch (error) {
-      console.error('사용자 프로필을 불러오는 데 실패했습니다:', error);
+      console.error('사용자 프로필을 불러오는 데 실패했습니다: ', error);
     }
   };
 
@@ -120,6 +195,7 @@ const Main: React.FC = () => {
   return (
     <>
       <Header />
+      <ToastContainer />
       <div>
         <main className='mx-20 lg:px-8'>
           {/* <div className='flex items-baseline justify-between pb-2 pt-6'> */}
@@ -162,7 +238,7 @@ const Main: React.FC = () => {
                 <h3 className='sr-only'>Categories</h3>
                 <div className='space-y-6 pb-8 text-xl font-medium text-gray-900 dark:text-gray-200'>
                   {/* 필터 처리 로직 완성되면 map으로 돌릴 거임 */}
-                  <div>{/* <button>추천</button> */}</div>
+                  {/* <div><button>추천</button></div> */}
                   <div>
                     <button
                       type='button'
