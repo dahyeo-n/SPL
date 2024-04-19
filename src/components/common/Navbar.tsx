@@ -102,6 +102,7 @@ const Navbar: React.FC = () => {
                 strokeWidth={1.5}
                 stroke='currentColor'
                 className='w-6 h-6'
+                onClick={() => router.push(`/my?category=scrapped`)}
               >
                 <path
                   strokeLinecap='round'
