@@ -159,29 +159,19 @@ const Main: React.FC = () => {
     }
   };
 
-  const handleCategorySelection = async (category: string) => {
+  const handleCategorySelection = (category: string) => {
     if (category !== selectedState.category) {
       window.history.pushState({}, '', `?category=${category}`);
       // await fetchStudyPlaces(category, selectedState.placeType);
-
-      setSelectedState((state) => ({
-        ...state,
-        category: category,
-        placeType: '',
-      }));
+      setSelectedState({ category, placeType: '' });
     }
   };
 
-  const handlePlaceTypeSelection = async (placeType: string) => {
+  const handlePlaceTypeSelection = (placeType: string) => {
     if (placeType !== selectedState.placeType) {
       window.history.pushState({}, '', `?placeType=${placeType}`);
       // await fetchStudyPlaces(selectedState.category, placeType);
-
-      setSelectedState((state) => ({
-        ...state,
-        category: '',
-        placeType: placeType,
-      }));
+      setSelectedState({ category: '', placeType });
     }
   };
 
@@ -215,6 +205,7 @@ const Main: React.FC = () => {
         if (error) throw error;
         setStudyPlaces(data || []); // 데이터 설정
       } catch (error) {
+        console.error('데이터 조회 실패: ', error);
         toast.error('데이터를 불러오는 데 실패했습니다.');
       } finally {
         setLoading(false); // 데이터 로딩 완료
@@ -245,20 +236,15 @@ const Main: React.FC = () => {
       }
     };
 
+    window.addEventListener('popstate', loadFromURL);
+
     // 초기 로딩 및 URL 변경 감지
     loadFromURL();
 
-    // popstate 이벤트 리스너 설정
-    const handlePopState = () => {
-      loadFromURL();
-    };
-
-    window.addEventListener('popstate', handlePopState);
-
     return () => {
-      window.removeEventListener('popstate', handlePopState);
+      window.removeEventListener('popstate', loadFromURL);
     };
-  }, [fetchStudyPlaces, selectedState.category, selectedState.placeType]); // fetchStudyPlaces가 변경되지 않는 한 다시 설정할 필요가 없으므로 의존성 배열은 비워두지 않음
+  }, [selectedState.category, selectedState.placeType]);
 
   //   const handlePopState = () => {
   //     setCurrentUrl(window.location.href);
