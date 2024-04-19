@@ -111,7 +111,13 @@ const Navbar: React.FC = () => {
               </svg>
             </button>
 
-            <Button href='/my' as={Link} color='primary' variant='ghost'>
+            <Button
+              className='ml-1'
+              href='/my'
+              as={Link}
+              color='primary'
+              variant='ghost'
+            >
               마이페이지
             </Button>
 
@@ -124,6 +130,7 @@ const Navbar: React.FC = () => {
             <div className='flex items-center gap-4'>
               <ThemeSwitcher />
               <Button
+                className='ml-2'
                 href='/sign/signin'
                 as={Link}
                 color='primary'

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import supabase from '@/supabaseClient';
 import { Session } from '@supabase/supabase-js';
 
@@ -11,6 +11,7 @@ import { useRouter } from 'next/navigation';
 
 import { Spacer } from '@nextui-org/react';
 import { ToastContainer, toast } from 'react-toastify';
+import Link from 'next/link';
 
 interface StudyPlace {
   id: string;
@@ -30,10 +31,19 @@ interface StudyPlace {
 
 const Main: React.FC = () => {
   const [studyPlaces, setStudyPlaces] = useState<StudyPlace[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<string>('');
-  const [selectedPlaceType, setSelectedPlaceType] = useState<string>('');
   const [session, setSession] = useState<Session | null>(null);
   const [nickname, setNickname] = useState<string | null>(null);
+  // const [selectedCategory, setSelectedCategory] = useState<string>('');
+  // const [selectedPlaceType, setSelectedPlaceType] = useState<string>('');
+
+  const [selectedState, setSelectedState] = useState({
+    category: '',
+    placeType: '',
+  });
+
+  // 현재 페이지의 URL 저장
+  const [currentUrl, setCurrentUrl] = useState(window.location.href);
+  const [loading, setLoading] = useState(false);
 
   const router = useRouter();
 
@@ -98,6 +108,7 @@ const Main: React.FC = () => {
 
       profileImageUrl = user.user_metadata?.avatar_url || profileImageUrl;
     }
+
     try {
       const { data, error } = await supabase.from('user_profiles').upsert(
         {
@@ -153,43 +164,117 @@ const Main: React.FC = () => {
     }
   };
 
-  const fetchStudyPlaces = async (category: string, placeType: string) => {
-    let query = supabase
-      .from('study_places')
-      .select('*')
-      .order('rating', { ascending: false });
+  const fetchStudyPlaces = useCallback(
+    async (category: string, placeType: string) => {
+      setLoading(true);
 
-    if (category) {
-      query = query.ilike('category', `%${category}%`);
-    }
+      let query = supabase
+        .from('study_places')
+        .select('*')
+        .order('rating', { ascending: false });
 
-    if (placeType) {
-      query = query.ilike('place_type', `%${placeType}%`);
-    }
+      if (category) {
+        query = query.ilike('category', `%${category}%`);
+      }
 
-    const { data, error } = await query;
+      if (placeType) {
+        query = query.ilike('place_type', `%${placeType}%`);
+      }
 
-    if (error) {
-      console.error('데이터를 불러오는 데 실패했습니다: ', error);
-    } else {
-      setStudyPlaces(data || []);
-    }
-  };
+      try {
+        const { data, error } = await query;
+        if (error) throw error;
+        setStudyPlaces(data || []); // 데이터 설정
+      } catch (error) {
+        toast.error('데이터를 불러오는 데 실패했습니다.');
+        console.error('데이터를 불러오는 데 실패했습니다: ', error);
+      } finally {
+        setLoading(false); // 데이터 로딩 완료
+      }
+    },
+    []
+  );
 
+  // 윈도우의 popstate 이벤트 리스너를 설정하여 URL 변경을 감지
   useEffect(() => {
-    fetchStudyPlaces(selectedCategory, selectedPlaceType);
-  }, [selectedCategory, selectedPlaceType]);
+    const url = new URL(currentUrl);
+    const category = url.searchParams.get('category') || '';
+    const placeType = url.searchParams.get('placeType') || '';
+
+    // 파싱한 쿼리 스트링으로 데이터 로딩 함수 호출
+    fetchStudyPlaces(category, placeType);
+
+    const handlePopState = () => {
+      setCurrentUrl(window.location.href);
+    };
+
+    window.addEventListener('popstate', handlePopState);
+
+    // 컴포넌트 언마운트 시 이벤트 리스너 제거
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [currentUrl, fetchStudyPlaces]);
+
+  // useEffect(() => {
+  //   // URL에서 쿼리 스트링 파라미터 파싱
+  //   const params = new URLSearchParams(window.location.search);
+  //   const urlCategory = params.get('category') || '';
+  //   const urlPlaceType = params.get('placeType') || '';
+
+  //   // URL 상태가 변경되었는지 확인 후 상태 업데이트
+  //   if (
+  //     urlCategory !== selectedState.category ||
+  //     urlPlaceType !== selectedState.placeType
+  //   ) {
+  //     setSelectedState({ category: urlCategory, placeType: urlPlaceType });
+  //     fetchStudyPlaces(urlCategory, urlPlaceType);
+  //   }
+  // }, [currentUrl, fetchStudyPlaces]);
+
+  // 버튼을 누른다. 변경된 카테고리에 따라서 fetchStudyPlaces를 호출한다.
+  // url을 공유받았을때 똑같이 스터디룸으로 표현된 데이터를 보여주자.
+  // 버튼을 눌렀을때도 url이 변경된다. url이 변경되었으니깐 fetchStudyPlaces도 url 변경 여부에 따라서 호출이 된다.
+
+  // useEffect(() => {
+  //   if (currentUrl.includes('?')) {
+  //     const url = currentUrl.split('?')[1].split('=');
+
+  //     const placeType =
+  //       url[0] === 'placeType' ? decodeURIComponent(url[1]) : '';
+  //     const category = url[0] === 'category' ? decodeURIComponent(url[1]) : '';
+
+  //     console.log(placeType, category);
+
+  //     fetchStudyPlaces(placeType, category);
+  //   } else {
+  //     fetchStudyPlaces(selectedCategory, selectedCategory);
+  //   }
+
+  //   console.log(selectedCategory, selectedPlaceType);
+  //   fetchStudyPlaces(selectedCategory, selectedPlaceType);
+  // }, [selectedCategory, selectedPlaceType, currentUrl]);
 
   const handleCategorySelection = (category: string) => {
-    setSelectedCategory(category);
-    setSelectedPlaceType('');
-    fetchStudyPlaces(category, '');
+    if (category !== selectedState.category) {
+      window.history.pushState({}, '', `?category=${category}`);
+      setSelectedState((state) => ({
+        ...state,
+        category: category,
+        placeType: '',
+      }));
+    }
   };
 
   const handlePlaceTypeSelection = (placeType: string) => {
-    setSelectedPlaceType(placeType);
-    setSelectedCategory('');
-    fetchStudyPlaces('', placeType);
+    if (placeType !== selectedState.placeType) {
+      window.history.pushState({}, '', `?placeType=${placeType}`);
+      setSelectedState((state) => ({
+        ...state,
+        category: '',
+        placeType: placeType,
+      }));
+    }
   };
 
   return (
@@ -198,36 +283,25 @@ const Main: React.FC = () => {
       <ToastContainer />
       <div>
         <main className='mx-20 lg:px-8'>
-          {/* <div className='flex items-baseline justify-between pb-2 pt-6'> */}
           <div className='flex items-baseline justify-start pb-2 pt-6'>
             <h1 className='text-4xl font-bold tracking-tight text-gray-900 dark:text-gray-200'>
               Categories
             </h1>
-
-            {/* <button
-              type='button'
-              className='-m-2 ml-5 p-2 text-gray-400 hover:text-gray-500 sm:ml-7 lg:hidden'
-            >
-              <span className='sr-only'>Filters</span>
-              <svg
-                className='h-5 w-5'
-                aria-hidden='true'
-                viewBox='0 0 20 20'
-                fill='currentColor'
-              >
-                <path
-                  fillRule='evenodd'
-                  d='M2.628 1.601C5.028 1.206 7.49 1 10 1s4.973.206 7.372.601a.75.75 0 01.628.74v2.288a2.25 2.25 0 01-.659 1.59l-4.682 4.683a2.25 2.25 0 00-.659 1.59v3.037c0 .684-.31 1.33-.844 1.757l-1.937 1.55A.75.75 0 018 18.25v-5.757a2.25 2.25 0 00-.659-1.591L2.659 6.22A2.25 2.25 0 012 4.629V2.34a.75.75 0 01.628-.74z'
-                  clipRule='evenodd'
-                />
-              </svg>
-            </button> */}
             <div className='pb-4'>
-              {/* flex items-center justify-start */}
               <div className='ml-48 text-2xl font-bold text-gray-700 dark:text-gray-300'>
-                {nickname
-                  ? `${nickname}님이 목표와 꿈을 이루시도록 스플이 함께할게요!`
-                  : '3초만에 로그인해서 다양한 서비스를 만나보세요!'}
+                {nickname ? (
+                  `${nickname}님이 목표와 꿈을 이루시도록 스플이 함께할게요!`
+                ) : (
+                  <>
+                    3초만에{' '}
+                    <Link href='/sign/signin'>
+                      <span className='text-indigo-500 underline decoration-indigo-500'>
+                        로그인
+                      </span>
+                    </Link>{' '}
+                    하셔서 다양한 서비스를 만나보세요!
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -243,12 +317,16 @@ const Main: React.FC = () => {
                     <button
                       type='button'
                       onClick={() => {
-                        setSelectedCategory('');
-                        setSelectedPlaceType('');
-                        fetchStudyPlaces('', '');
+                        window.history.pushState({}, '', '/');
+                        setSelectedState((prevState) => ({
+                          ...prevState,
+                          category: '',
+                          placeType: '',
+                        }));
                       }}
                       className={`${
-                        selectedCategory === '' && selectedPlaceType === ''
+                        selectedState.category === '' &&
+                        selectedState.placeType === ''
                           ? 'text-gray-900 dark:text-gray-200'
                           : 'text-gray-400 dark:text-gray-500'
                       }`}
@@ -261,7 +339,7 @@ const Main: React.FC = () => {
                       type='button'
                       onClick={() => handlePlaceTypeSelection('스터디룸')}
                       className={`${
-                        selectedPlaceType === '스터디룸'
+                        selectedState.placeType === '스터디룸'
                           ? 'text-gray-900 dark:text-gray-200'
                           : 'text-gray-400 dark:text-gray-500'
                       }`}
@@ -274,7 +352,7 @@ const Main: React.FC = () => {
                       type='button'
                       onClick={() => handlePlaceTypeSelection('스터디카페')}
                       className={`${
-                        selectedPlaceType === '스터디카페'
+                        selectedState.placeType === '스터디카페'
                           ? 'text-gray-900 dark:text-gray-200'
                           : 'text-gray-400 dark:text-gray-500'
                       }`}
@@ -287,7 +365,7 @@ const Main: React.FC = () => {
                       type='button'
                       onClick={() => handlePlaceTypeSelection('일반카페')}
                       className={`${
-                        selectedPlaceType === '일반카페'
+                        selectedState.placeType === '일반카페'
                           ? 'text-gray-900 dark:text-gray-200'
                           : 'text-gray-400 dark:text-gray-500'
                       }`}
@@ -300,7 +378,7 @@ const Main: React.FC = () => {
                       type='button'
                       onClick={() => handlePlaceTypeSelection('북카페')}
                       className={`${
-                        selectedPlaceType === '북카페'
+                        selectedState.placeType === '북카페'
                           ? 'text-gray-900 dark:text-gray-200'
                           : 'text-gray-400 dark:text-gray-500'
                       }`}
@@ -313,7 +391,7 @@ const Main: React.FC = () => {
                       type='button'
                       onClick={() => handleCategorySelection('노트북 이용')}
                       className={`${
-                        selectedCategory === '노트북 이용'
+                        selectedState.category === '노트북 이용'
                           ? 'text-gray-900 dark:text-gray-200'
                           : 'text-gray-400 dark:text-gray-500'
                       }`}
@@ -326,7 +404,7 @@ const Main: React.FC = () => {
                       type='button'
                       onClick={() => handleCategorySelection('조용하고 한적한')}
                       className={`${
-                        selectedCategory === '조용하고 한적한'
+                        selectedState.category === '조용하고 한적한'
                           ? 'text-gray-900 dark:text-gray-200'
                           : 'text-gray-400 dark:text-gray-500'
                       }`}
@@ -339,7 +417,7 @@ const Main: React.FC = () => {
                       type='button'
                       onClick={() => handleCategorySelection('세련되고 깔끔한')}
                       className={`${
-                        selectedCategory === '세련되고 깔끔한'
+                        selectedState.category === '세련되고 깔끔한'
                           ? 'text-gray-900 dark:text-gray-200'
                           : 'text-gray-400 dark:text-gray-500'
                       }`}
@@ -352,7 +430,7 @@ const Main: React.FC = () => {
                       type='button'
                       onClick={() => handleCategorySelection('뷰 맛집')}
                       className={`${
-                        selectedCategory === '뷰 맛집'
+                        selectedState.category === '뷰 맛집'
                           ? 'text-gray-900 dark:text-gray-200'
                           : 'text-gray-400 dark:text-gray-500'
                       }`}
@@ -363,26 +441,32 @@ const Main: React.FC = () => {
                 </div>
               </form>
 
-              <div className='lg:col-span-3'>
-                <div className='flex flex-wrap'>
-                  {studyPlaces.map((place) => (
-                    <React.Fragment key={place.place_id}>
-                      <div
-                        className='cursor-pointer transform transition duration-300 ease-in-out hover:scale-105'
-                        onClick={() => router.push(`/detail/${place.place_id}`)}
-                      >
-                        <CustomMainCard
-                          place={place}
-                          onCardClick={(id: string) =>
-                            router.push(`/detail/${id}`)
+              {loading ? (
+                <div>Loading...</div>
+              ) : (
+                <div className='lg:col-span-3'>
+                  <div className='flex flex-wrap'>
+                    {studyPlaces.map((place) => (
+                      <React.Fragment key={place.place_id}>
+                        <div
+                          className='cursor-pointer transform transition duration-300 ease-in-out hover:scale-105'
+                          onClick={() =>
+                            router.push(`/detail/${place.place_id}`)
                           }
-                        />
-                      </div>
-                      <Spacer x={4} />
-                    </React.Fragment>
-                  ))}
+                        >
+                          <CustomMainCard
+                            place={place}
+                            onCardClick={(id: string) =>
+                              router.push(`/detail/${id}`)
+                            }
+                          />
+                        </div>
+                        <Spacer x={4} />
+                      </React.Fragment>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           </section>
         </main>
