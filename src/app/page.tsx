@@ -179,9 +179,6 @@ const Main: React.FC = () => {
     fetchStudyPlaces(selectedState.category, selectedState.placeType);
   }, [selectedState.category, selectedState.placeType]);
 
-  // 현재 페이지의 URL 저장
-  // const [currentUrl, setCurrentUrl] = useState(window.location.href);
-
   const fetchStudyPlaces = useCallback(
     async (category: string, placeType: string) => {
       setLoading(true);
@@ -213,6 +210,9 @@ const Main: React.FC = () => {
     },
     []
   );
+
+  // 현재 페이지의 URL 저장
+  // const [currentUrl, setCurrentUrl] = useState(window.location.href);
 
   // 윈도우의 popstate 이벤트 리스너를 설정하여 URL 변경을 감지
   useEffect(() => {

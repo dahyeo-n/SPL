@@ -1,4 +1,5 @@
 import React from 'react';
+import HeaderImg from '../../../public/images/HeaderImg.jpg';
 
 const Header = () => {
   return (
@@ -6,7 +7,7 @@ const Header = () => {
       <div
         className='rounded-lg bg-cover bg-center bg-no-repeat w-[1000px] h-[400px] p-4 mx-2'
         style={{
-          backgroundImage: `url(https://app.requestly.io/delay/5000/https://nextui-docs-v2.vercel.app/images/hero-card-complete.jpeg)`,
+          backgroundImage: `url('/images/HeaderImg.jpg')`,
         }}
       ></div>
     </div>
