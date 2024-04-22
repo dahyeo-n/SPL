@@ -302,7 +302,33 @@ const My: React.FC = () => {
 
   const handleCategorySelection = (category: string) => {
     setSelectedCategory(category);
+    const url = new URL(window.location.href);
+    url.searchParams.set('category', category);
+    window.history.pushState({}, '', `?category=${category}`);
   };
+
+  useEffect(() => {
+    const loadCategoryFromURL = () => {
+      const url = new URL(window.location.href);
+      const category = url.searchParams.get('category') || 'profile';
+      setSelectedCategory(category);
+    };
+
+    // 페이지 로딩 시 URL에서 카테고리 정보를 읽어 상태 업데이트
+    loadCategoryFromURL();
+
+    // URL 변경 감지
+    const handlePopState = () => {
+      loadCategoryFromURL();
+    };
+
+    window.addEventListener('popstate', handlePopState);
+
+    // 컴포넌트 언마운트 시 이벤트 리스너 제거
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, []);
 
   return (
     <div>

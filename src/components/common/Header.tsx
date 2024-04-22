@@ -1,14 +1,26 @@
 import React from 'react';
+import EmblaCarousel from '../common/EmblaCarousel';
+import { EmblaOptionsType } from 'embla-carousel';
 
-const Header = () => {
+const OPTIONS: EmblaOptionsType = { loop: true };
+const SLIDES = [
+  '/images/HeaderImg.jpg',
+  '/images/HeaderImg.jpg',
+  '/images/HeaderImg.jpg',
+  '/images/HeaderImg.jpg',
+  '/images/HeaderImg.jpg',
+];
+
+const Header: React.FC = () => {
   return (
     <div className='flex justify-center w-full overflow-hidden mb-8'>
-      <div
+      {/* <div
         className='rounded-lg bg-cover bg-center bg-no-repeat w-[1000px] h-[400px] p-4 mx-2'
         style={{
-          backgroundImage: `url(https://app.requestly.io/delay/5000/https://nextui-docs-v2.vercel.app/images/hero-card-complete.jpeg)`,
+          backgroundImage: `url('/images/HeaderImg.jpg')`,
         }}
-      ></div>
+      ></div> */}
+      <EmblaCarousel slides={SLIDES} options={OPTIONS} />
     </div>
   );
 };

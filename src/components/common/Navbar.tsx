@@ -12,6 +12,9 @@ import { NotificationIcon } from './NotificationIcon';
 import { ThemeSwitcher } from '../theme/ThemeSwitcher';
 import { ToastContainer, toast } from 'react-toastify';
 
+import Image from 'next/image';
+import logo from '../../../public/images/SPL-logo.png';
+
 const Navbar: React.FC = () => {
   const [session, setSession] = useState<Session | null>(null);
   const [isInvisible, setIsInvisible] = React.useState(false);
@@ -64,8 +67,8 @@ const Navbar: React.FC = () => {
   return (
     <div className='flex h-14 mx-8 my-4 items-center justify-between'>
       <div>
-        <Link className='font-bold text-lg' href='/'>
-          SPL
+        <Link href='/' className='font-bold text-lg'>
+          <Image src={logo} alt='SPL로고' width={100} height={100} />
         </Link>
       </div>
 
@@ -102,6 +105,7 @@ const Navbar: React.FC = () => {
                 strokeWidth={1.5}
                 stroke='currentColor'
                 className='w-6 h-6'
+                onClick={() => router.push(`/my?category=scrapped`)}
               >
                 <path
                   strokeLinecap='round'

@@ -33,17 +33,12 @@ const Main: React.FC = () => {
   const [studyPlaces, setStudyPlaces] = useState<StudyPlace[]>([]);
   const [session, setSession] = useState<Session | null>(null);
   const [nickname, setNickname] = useState<string | null>(null);
-  // const [selectedCategory, setSelectedCategory] = useState<string>('');
-  // const [selectedPlaceType, setSelectedPlaceType] = useState<string>('');
+  const [loading, setLoading] = useState(false);
 
   const [selectedState, setSelectedState] = useState({
     category: '',
     placeType: '',
   });
-
-  // 현재 페이지의 URL 저장
-  const [currentUrl, setCurrentUrl] = useState(window.location.href);
-  const [loading, setLoading] = useState(false);
 
   const router = useRouter();
 
@@ -164,6 +159,26 @@ const Main: React.FC = () => {
     }
   };
 
+  const handleCategorySelection = (category: string) => {
+    if (category !== selectedState.category) {
+      window.history.pushState({}, '', `?category=${category}`);
+      // await fetchStudyPlaces(category, selectedState.placeType);
+      setSelectedState({ category, placeType: '' });
+    }
+  };
+
+  const handlePlaceTypeSelection = (placeType: string) => {
+    if (placeType !== selectedState.placeType) {
+      window.history.pushState({}, '', `?placeType=${placeType}`);
+      // await fetchStudyPlaces(selectedState.category, placeType);
+      setSelectedState({ category: '', placeType });
+    }
+  };
+
+  useEffect(() => {
+    fetchStudyPlaces(selectedState.category, selectedState.placeType);
+  }, [selectedState.category, selectedState.placeType]);
+
   const fetchStudyPlaces = useCallback(
     async (category: string, placeType: string) => {
       setLoading(true);
@@ -171,6 +186,7 @@ const Main: React.FC = () => {
       let query = supabase
         .from('study_places')
         .select('*')
+        // .select('id, name, category, place_type, rating') // 필요한 필드만 선택
         .order('rating', { ascending: false });
 
       if (category) {
@@ -186,8 +202,8 @@ const Main: React.FC = () => {
         if (error) throw error;
         setStudyPlaces(data || []); // 데이터 설정
       } catch (error) {
+        console.error('데이터 조회 실패: ', error);
         toast.error('데이터를 불러오는 데 실패했습니다.');
-        console.error('데이터를 불러오는 데 실패했습니다: ', error);
       } finally {
         setLoading(false); // 데이터 로딩 완료
       }
@@ -195,26 +211,52 @@ const Main: React.FC = () => {
     []
   );
 
+  // 현재 페이지의 URL 저장
+  // const [currentUrl, setCurrentUrl] = useState(window.location.href);
+
   // 윈도우의 popstate 이벤트 리스너를 설정하여 URL 변경을 감지
   useEffect(() => {
-    const url = new URL(currentUrl);
-    const category = url.searchParams.get('category') || '';
-    const placeType = url.searchParams.get('placeType') || '';
+    const loadFromURL = () => {
+      // const url = new URL(currentUrl);
+      // const category = url.searchParams.get('category') || '';
+      // const placeType = url.searchParams.get('placeType') || '';
 
-    // 파싱한 쿼리 스트링으로 데이터 로딩 함수 호출
-    fetchStudyPlaces(category, placeType);
+      // // 파싱한 쿼리 스트링으로 데이터 로딩 함수 호출
+      // fetchStudyPlaces(category, placeType);
+      const params = new URLSearchParams(window.location.search);
+      const category = params.get('category') || '';
+      const placeType = params.get('placeType') || '';
 
-    const handlePopState = () => {
-      setCurrentUrl(window.location.href);
+      if (
+        category !== selectedState.category ||
+        placeType !== selectedState.placeType
+      ) {
+        setSelectedState({ category, placeType });
+        fetchStudyPlaces(category, placeType);
+      }
     };
 
-    window.addEventListener('popstate', handlePopState);
+    window.addEventListener('popstate', loadFromURL);
 
-    // 컴포넌트 언마운트 시 이벤트 리스너 제거
+    // 초기 로딩 및 URL 변경 감지
+    loadFromURL();
+
     return () => {
-      window.removeEventListener('popstate', handlePopState);
+      window.removeEventListener('popstate', loadFromURL);
     };
-  }, [currentUrl, fetchStudyPlaces]);
+  }, [selectedState.category, selectedState.placeType]);
+
+  //   const handlePopState = () => {
+  //     setCurrentUrl(window.location.href);
+  //   };
+
+  //   window.addEventListener('popstate', handlePopState);
+
+  //   // 컴포넌트 언마운트 시 이벤트 리스너 제거
+  //   return () => {
+  //     window.removeEventListener('popstate', handlePopState);
+  //   };
+  // }, [currentUrl, fetchStudyPlaces]);
 
   // useEffect(() => {
   //   // URL에서 쿼리 스트링 파라미터 파싱
@@ -254,28 +296,6 @@ const Main: React.FC = () => {
   //   console.log(selectedCategory, selectedPlaceType);
   //   fetchStudyPlaces(selectedCategory, selectedPlaceType);
   // }, [selectedCategory, selectedPlaceType, currentUrl]);
-
-  const handleCategorySelection = (category: string) => {
-    if (category !== selectedState.category) {
-      window.history.pushState({}, '', `?category=${category}`);
-      setSelectedState((state) => ({
-        ...state,
-        category: category,
-        placeType: '',
-      }));
-    }
-  };
-
-  const handlePlaceTypeSelection = (placeType: string) => {
-    if (placeType !== selectedState.placeType) {
-      window.history.pushState({}, '', `?placeType=${placeType}`);
-      setSelectedState((state) => ({
-        ...state,
-        category: '',
-        placeType: placeType,
-      }));
-    }
-  };
 
   return (
     <>
@@ -318,11 +338,11 @@ const Main: React.FC = () => {
                       type='button'
                       onClick={() => {
                         window.history.pushState({}, '', '/');
-                        setSelectedState((prevState) => ({
-                          ...prevState,
+                        setSelectedState({
                           category: '',
                           placeType: '',
-                        }));
+                        });
+                        fetchStudyPlaces('', '');
                       }}
                       className={`${
                         selectedState.category === '' &&

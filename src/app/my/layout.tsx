@@ -6,6 +6,7 @@ import supabase from '@/supabaseClient';
 import { useRouter } from 'next/navigation';
 
 import { ToastContainer, toast } from 'react-toastify';
+import '../../components/css/base.css';
 
 const MyPageLayout = ({ children }: { children: React.ReactNode }) => {
   const [shouldRender, setShouldRender] = useState<boolean>(false);

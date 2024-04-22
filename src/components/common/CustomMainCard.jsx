@@ -7,7 +7,7 @@ export const CustomMainCard = ({ place, onCardClick }) => (
   <div onClick={() => onCardClick(place.place_id)}>
     <Card className='w-[335px] p-4 mx-1 mb-10' radius='2xl'>
       <div
-        className='h-40 rounded-lg bg-cover bg-center bg-no-repeat'
+        className='h-48 rounded-lg bg-cover bg-center bg-no-repeat'
         style={{ backgroundImage: `url(${place.photo_url})` }}
       ></div>
       <div className='space-y-1 pt-2'>
