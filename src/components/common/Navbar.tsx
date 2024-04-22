@@ -69,7 +69,6 @@ const Navbar: React.FC = () => {
       <div>
         <Link href='/' className='font-bold text-lg'>
           <Image src={logo} alt='SPL로고' width={100} height={100} />
-          {/* SPL */}
         </Link>
       </div>
 
