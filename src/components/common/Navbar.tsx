@@ -18,7 +18,7 @@ import logo from '../../../public/images/SPL-logo.png';
 
 const Navbar: React.FC = () => {
   const [session, setSession] = useState<Session | null>(null);
-  const [isInvisible, setIsInvisible] = React.useState(false);
+  // const [isInvisible, setIsInvisible] = React.useState(false);
 
   const router = useRouter();
   const pathname = usePathname();
@@ -77,6 +77,7 @@ const Navbar: React.FC = () => {
         {token ? (
           <div className='flex items-center gap-4'>
             <Input
+              name='search'
               classNames={{
                 base: 'max-w-full w-[16rem] h-10 mr-1',
                 mainWrapper: 'h-full',
@@ -147,6 +148,7 @@ const Navbar: React.FC = () => {
           <>
             <div className='flex items-center gap-4'>
               <Input
+                name='search'
                 classNames={{
                   base: 'max-w-full w-[16rem] h-10 mr-1',
                   mainWrapper: 'h-full',
