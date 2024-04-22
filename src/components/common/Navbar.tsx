@@ -7,10 +7,11 @@ import { Session } from '@supabase/supabase-js';
 
 import { useRouter, usePathname } from 'next/navigation';
 
-import { Badge, Button, Switch, Link } from '@nextui-org/react';
-import { NotificationIcon } from './NotificationIcon';
+import { Badge, Button, Switch, Link, Input } from '@nextui-org/react';
+// import { NotificationIcon } from './NotificationIcon';
 import { ThemeSwitcher } from '../theme/ThemeSwitcher';
 import { ToastContainer, toast } from 'react-toastify';
+import { SearchIcon } from './SearchIcon';
 
 import Image from 'next/image';
 import logo from '../../../public/images/SPL-logo.png';
@@ -68,15 +69,28 @@ const Navbar: React.FC = () => {
     <div className='flex h-14 mx-8 my-4 items-center justify-between'>
       <div>
         <Link href='/' className='font-bold text-lg'>
-          <Image src={logo} alt='SPL로고' width={100} height={100} />
+          <Image src={logo} alt='SPL로고' width={115} height={100} />
         </Link>
       </div>
 
       <div>
         {token ? (
           <div className='flex items-center gap-4'>
+            <Input
+              classNames={{
+                base: 'max-w-full w-[16rem] h-10 mr-1',
+                mainWrapper: 'h-full',
+                input: 'text-small',
+                inputWrapper:
+                  'h-full font-normal text-default-500 bg-default-400/20 dark:bg-default-500/20',
+              }}
+              placeholder='Search by place name...'
+              size='sm'
+              startContent={<SearchIcon size={18} />}
+              type='search'
+            />
             <ThemeSwitcher />
-            <Badge
+            {/* <Badge
               content='1'
               color='danger'
               isInvisible={isInvisible}
@@ -94,7 +108,7 @@ const Navbar: React.FC = () => {
             <Switch
               isSelected={!isInvisible}
               onValueChange={(value) => setIsInvisible(!value)}
-            ></Switch>
+            ></Switch> */}
 
             <button>
               <svg
@@ -133,6 +147,19 @@ const Navbar: React.FC = () => {
           <>
             <div className='flex items-center gap-4'>
               <ThemeSwitcher />
+              <Input
+                classNames={{
+                  base: 'max-w-full w-[16rem] h-10 mr-1',
+                  mainWrapper: 'h-full',
+                  input: 'text-small',
+                  inputWrapper:
+                    'h-full font-normal text-default-500 bg-default-400/20 dark:bg-default-500/20',
+                }}
+                placeholder='Search by place name...'
+                size='sm'
+                startContent={<SearchIcon size={18} />}
+                type='search'
+              />
               <Button
                 className='ml-2'
                 href='/sign/signin'
