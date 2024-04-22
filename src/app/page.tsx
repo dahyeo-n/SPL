@@ -78,7 +78,7 @@ const Main: React.FC = () => {
       .from('user_profiles')
       .select('nickname, user_profile_image')
       .eq('email', user.email)
-      .single();
+      .maybeSingle();
 
     if (profileError) {
       console.error('프로필 조회 에러: ', profileError);

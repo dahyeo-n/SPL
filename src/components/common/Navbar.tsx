@@ -146,7 +146,6 @@ const Navbar: React.FC = () => {
         ) : (
           <>
             <div className='flex items-center gap-4'>
-              <ThemeSwitcher />
               <Input
                 classNames={{
                   base: 'max-w-full w-[16rem] h-10 mr-1',
@@ -160,6 +159,7 @@ const Navbar: React.FC = () => {
                 startContent={<SearchIcon size={18} />}
                 type='search'
               />
+              <ThemeSwitcher />
               <Button
                 className='ml-2'
                 href='/sign/signin'
