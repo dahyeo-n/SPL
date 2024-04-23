@@ -18,7 +18,7 @@ export function ThemeSwitcher() {
   };
 
   return (
-    <div>
+    <div className='mt-1 mr-1'>
       <button onClick={toggleTheme}>
         {theme === 'light' ? (
           <svg
