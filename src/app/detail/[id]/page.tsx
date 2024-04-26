@@ -10,7 +10,7 @@ import Map from '../../../components/Map';
 
 import mediumZoom from 'medium-zoom';
 import { useTheme } from 'next-themes';
-import { toast } from 'react-toastify';
+import { ToastContainer, toast } from 'react-toastify';
 
 import {
   Image,
@@ -489,6 +489,7 @@ const Detail = () => {
   return (
     <>
       <div className='flex justify-center w-full overflow-hidden mb-8'>
+        <ToastContainer />
         <div
           className='rounded-lg w-[1000px] p-4 mx-2'
           style={{ height: '500px' }}
