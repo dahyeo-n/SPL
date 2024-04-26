@@ -555,11 +555,11 @@ const Detail = () => {
                     <Textarea
                       name='title'
                       variant='faded'
-                      label='Title'
+                      label='제목'
                       labelPlacement='outside'
                       value={comment.title}
                       onChange={handleCommentInputChange}
-                      placeholder='Enter the title. Please limit to 50 characters or less.'
+                      placeholder='제목을 50자 이하로 작성해주세요.'
                       className='col-span-12 md:col-span-6 mb-6 md:mb-0 font-bold'
                       maxLength={50}
                     />
@@ -567,11 +567,11 @@ const Detail = () => {
                     <Textarea
                       name='contents'
                       variant='faded'
-                      label='Contents'
+                      label='내용'
                       labelPlacement='outside'
                       value={comment.contents}
                       onChange={handleCommentInputChange}
-                      placeholder='Enter the contents. Please limit to 300 characters or less.'
+                      placeholder='내용을 300자 이하로 작성해주세요.'
                       className='col-span-12 md:col-span-6 mb-6 md:mb-0 font-bold'
                       maxLength={300}
                     />

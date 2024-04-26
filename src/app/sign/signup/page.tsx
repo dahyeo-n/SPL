@@ -224,14 +224,14 @@ const SignUpPage = () => {
             className='max-w-xs w-full mb-1'
             style={{ width: '330px' }}
             type='text'
-            label='Nickname'
+            label='닉네임'
             minLength={1}
             maxLength={15}
             variant='bordered'
             value={nickname}
             onClear={handleNicknameFieldClear}
             onChange={handleSubmitNickname}
-            placeholder='Enter your nickname'
+            placeholder='닉네임을 입력해주세요.'
           />
           {!nicknameValid && (
             <div className='text-red-500'>
@@ -247,8 +247,8 @@ const SignUpPage = () => {
           <Select
             isRequired
             className='max-w-xs'
-            label='Type'
-            placeholder='Select your type'
+            label='유형'
+            placeholder='유형을 선택해주세요.'
             defaultSelectedKeys={[]}
             onChange={handleUserTypeSelectionChange}
           >
@@ -269,12 +269,12 @@ const SignUpPage = () => {
             className='max-w-xs w-full mb-1'
             style={{ width: '330px' }}
             type='email'
-            label='Email'
+            label='이메일'
             variant='bordered'
             value={email}
             onClear={handleEmailFieldClear}
             onChange={handleSubmitEmail}
-            placeholder='Enter your email'
+            placeholder='이메일을 입력해주세요.'
           />
           {!emailValid && (
             <div className='text-red-500'>
@@ -292,7 +292,7 @@ const SignUpPage = () => {
               isRequired
               className='max-w-xs w-full mb-1'
               type={isVisible ? 'text' : 'password'}
-              label='Password'
+              label='비밀번호'
               variant='bordered'
               value={password}
               onChange={handleSubmitPassword}
