@@ -176,7 +176,8 @@ const Detail = () => {
             const { data, error } = await supabase
               .from('comments')
               .select('*')
-              .eq('study_place_id', placeId);
+              .eq('study_place_id', placeId)
+              .order('created_at', { ascending: false });
 
             if (error) throw error;
             setComments(data || []);
@@ -363,8 +364,9 @@ const Detail = () => {
       return;
     }
 
-    try {
-      const { data, error } = await supabase.from('comments').insert([
+    const { data, error } = await supabase
+      .from('comments')
+      .insert([
         {
           study_place_id: studyPlace.place_id,
           user_id: session?.user.id,
@@ -374,21 +376,21 @@ const Detail = () => {
           nickname,
           user_profile_image: userProfileImage,
         },
-      ]);
+      ])
+      .select();
 
-      if (error) {
-        toast.error('댓글을 저장하는 데 실패했습니다.');
-        console.error('Error saving comment: ', error);
-      } else if (data) {
-        setComments((currentComments) => [data[0], ...currentComments]);
-      }
+    if (error) {
+      toast.error('댓글을 저장하는 데 실패했습니다.');
+      console.error('Error saving comment: ', error);
+      return; // 에러가 있으면 여기서 함수 실행을 종료
+    }
 
+    if (data) {
+      setComments((prevComments) => [data[0], ...prevComments]);
       setComment({ title: '', contents: '', rating: '' });
       console.log('Comment saved successfully: ', data);
       toast.success('댓글이 저장되었습니다.');
-    } catch (error) {
-      toast.error('댓글을 저장하는 데 실패했습니다.');
-      console.error('Error saving comment: ', error);
+      router.refresh();
     }
   };
 
