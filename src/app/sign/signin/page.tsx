@@ -123,12 +123,12 @@ const SignInPage = () => {
             className='max-w-xs w-full mb-1'
             style={{ width: '330px' }}
             type='email'
-            label='Email'
+            label='이메일'
             variant='bordered'
             value={email}
             onClear={handleEmailFieldClear}
             onChange={handleSubmitEmail}
-            placeholder='Enter your email'
+            placeholder='이메일을 입력해주세요.'
           />
           {!emailValid && (
             <p className='text-red-500'>
@@ -143,7 +143,7 @@ const SignInPage = () => {
               isRequired
               className='max-w-xs w-full mb-1'
               type={isVisible ? 'text' : 'password'}
-              label='Password'
+              label='비밀번호'
               variant='bordered'
               value={password}
               onChange={handleSubmitPassword}

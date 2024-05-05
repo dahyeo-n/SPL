@@ -42,7 +42,6 @@ interface StudyPlace {
 }
 
 interface Comment {
-  title: string;
   contents: string;
   rating: string;
 }
@@ -52,7 +51,6 @@ interface Comments {
   study_place_id: string;
   user_id: string;
   rating: string;
-  title: string;
   contents: string;
   created_at: string;
   nickname: string;
@@ -131,7 +129,6 @@ const Detail = () => {
   };
 
   const [comment, setComment] = useState<Comment>({
-    title: '',
     contents: '',
     rating: '',
   });
@@ -176,7 +173,8 @@ const Detail = () => {
             const { data, error } = await supabase
               .from('comments')
               .select('*')
-              .eq('study_place_id', placeId);
+              .eq('study_place_id', placeId)
+              .order('created_at', { ascending: false });
 
             if (error) throw error;
             setComments(data || []);
@@ -352,7 +350,7 @@ const Detail = () => {
   };
 
   const isCommentValid = () => {
-    return comment.title.trim() && comment.contents.trim() && comment.rating;
+    return comment.contents.trim() && comment.rating;
   };
 
   const saveComment = async () => {
@@ -363,32 +361,32 @@ const Detail = () => {
       return;
     }
 
-    try {
-      const { data, error } = await supabase.from('comments').insert([
+    const { data, error } = await supabase
+      .from('comments')
+      .insert([
         {
           study_place_id: studyPlace.place_id,
           user_id: session?.user.id,
           rating: comment.rating,
-          title: comment.title,
           contents: comment.contents,
           nickname,
           user_profile_image: userProfileImage,
         },
-      ]);
+      ])
+      .select();
 
-      if (error) {
-        toast.error('댓글을 저장하는 데 실패했습니다.');
-        console.error('Error saving comment: ', error);
-      } else if (data) {
-        setComments((currentComments) => [data[0], ...currentComments]);
-      }
-
-      setComment({ title: '', contents: '', rating: '' });
-      console.log('Comment saved successfully: ', data);
-      toast.success('댓글이 저장되었습니다.');
-    } catch (error) {
+    if (error) {
       toast.error('댓글을 저장하는 데 실패했습니다.');
       console.error('Error saving comment: ', error);
+      return; // 에러가 있으면 여기서 함수 실행을 종료
+    }
+
+    if (data) {
+      setComments((prevComments) => [data[0], ...prevComments]);
+      setComment({ contents: '', rating: '' });
+      console.log('Comment saved successfully: ', data);
+      toast.success('댓글이 저장되었습니다.');
+      router.refresh();
     }
   };
 
@@ -413,7 +411,6 @@ const Detail = () => {
     setIsEditing(true);
     setEditingCommentId(comment.comment_id);
     setComment({
-      title: comment.title,
       contents: comment.contents,
       rating: comment.rating,
     });
@@ -429,7 +426,6 @@ const Detail = () => {
       const { error } = await supabase
         .from('comments')
         .update({
-          title: comment.title,
           contents: comment.contents,
           rating: comment.rating,
         })
@@ -442,7 +438,6 @@ const Detail = () => {
           comment.comment_id === editingCommentId
             ? {
                 ...comment,
-                title: comment.title,
                 contents: comment.contents,
                 rating: comment.rating,
               }
@@ -453,7 +448,7 @@ const Detail = () => {
       // 수정 모드 종료
       setIsEditing(false);
       setEditingCommentId(null);
-      setComment({ title: '', contents: '', rating: '' });
+      setComment({ contents: '', rating: '' });
     } catch (error) {
       toast.error('댓글 수정에 실패했습니다.');
       console.error('Error updating comment: ', error);
@@ -553,25 +548,13 @@ const Detail = () => {
                     </div>
 
                     <Textarea
-                      name='title'
-                      variant='faded'
-                      label='Title'
-                      labelPlacement='outside'
-                      value={comment.title}
-                      onChange={handleCommentInputChange}
-                      placeholder='Enter the title. Please limit to 50 characters or less.'
-                      className='col-span-12 md:col-span-6 mb-6 md:mb-0 font-bold'
-                      maxLength={50}
-                    />
-
-                    <Textarea
                       name='contents'
                       variant='faded'
-                      label='Contents'
+                      label='내용'
                       labelPlacement='outside'
                       value={comment.contents}
                       onChange={handleCommentInputChange}
-                      placeholder='Enter the contents. Please limit to 300 characters or less.'
+                      placeholder='내용을 300자 이하로 작성해주세요.'
                       className='col-span-12 md:col-span-6 mb-6 md:mb-0 font-bold'
                       maxLength={300}
                     />
@@ -665,10 +648,9 @@ const Detail = () => {
                             </CardHeader>
 
                             <CardBody className='m-2 px-3 py-0'>
-                              <p className='text-ml font-bold'>
-                                {comment.title}
-                              </p>
-                              <span className='pt-2'>{comment.contents}</span>
+                              <span className='pt-2 text-ml font-bold'>
+                                {comment.contents}
+                              </span>
                             </CardBody>
                             <CardFooter className='ml-2 gap-3'>
                               <div className='flex gap-1'>
