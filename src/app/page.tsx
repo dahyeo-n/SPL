@@ -6,10 +6,11 @@ import { Session } from '@supabase/supabase-js';
 
 import Header from '@/components/common/Header';
 import { CustomMainCard } from '../components/common/CustomMainCard';
+import SkeletonCard from '../components/common/SkeletonCard';
 
 import { useRouter } from 'next/navigation';
 
-import { Spacer } from '@nextui-org/react';
+import { Spacer, Card, Skeleton } from '@nextui-org/react';
 import { ToastContainer, toast } from 'react-toastify';
 import Link from 'next/link';
 
@@ -234,6 +235,12 @@ const Main: React.FC = () => {
     };
   }, [selectedState.category, selectedState.placeType]);
 
+  const renderSkeletonCards = (count: number) => {
+    return Array.from({ length: count }, (_, index) => (
+      <SkeletonCard key={index} />
+    ));
+  };
+
   return (
     <>
       <Header />
@@ -399,7 +406,9 @@ const Main: React.FC = () => {
               </form>
 
               {loading ? (
-                <div>Loading...</div>
+                <div className='lg:col-span-3'>
+                  <div className='flex flex-wrap'>{renderSkeletonCards(9)}</div>
+                </div>
               ) : (
                 <div className='lg:col-span-3'>
                   <div className='flex flex-wrap'>
