@@ -162,7 +162,6 @@ const Main: React.FC = () => {
   const handleCategorySelection = (category: string) => {
     if (category !== selectedState.category) {
       window.history.pushState({}, '', `?category=${category}`);
-      // await fetchStudyPlaces(category, selectedState.placeType);
       setSelectedState({ category, placeType: '' });
     }
   };
@@ -170,7 +169,6 @@ const Main: React.FC = () => {
   const handlePlaceTypeSelection = (placeType: string) => {
     if (placeType !== selectedState.placeType) {
       window.history.pushState({}, '', `?placeType=${placeType}`);
-      // await fetchStudyPlaces(selectedState.category, placeType);
       setSelectedState({ category: '', placeType });
     }
   };
@@ -186,7 +184,6 @@ const Main: React.FC = () => {
       let query = supabase
         .from('study_places')
         .select('*')
-        // .select('id, name, category, place_type, rating') // 필요한 필드만 선택
         .order('rating', { ascending: false });
 
       if (category) {
@@ -211,18 +208,9 @@ const Main: React.FC = () => {
     []
   );
 
-  // 현재 페이지의 URL 저장
-  // const [currentUrl, setCurrentUrl] = useState(window.location.href);
-
   // 윈도우의 popstate 이벤트 리스너를 설정하여 URL 변경을 감지
   useEffect(() => {
     const loadFromURL = () => {
-      // const url = new URL(currentUrl);
-      // const category = url.searchParams.get('category') || '';
-      // const placeType = url.searchParams.get('placeType') || '';
-
-      // // 파싱한 쿼리 스트링으로 데이터 로딩 함수 호출
-      // fetchStudyPlaces(category, placeType);
       const params = new URLSearchParams(window.location.search);
       const category = params.get('category') || '';
       const placeType = params.get('placeType') || '';
@@ -245,57 +233,6 @@ const Main: React.FC = () => {
       window.removeEventListener('popstate', loadFromURL);
     };
   }, [selectedState.category, selectedState.placeType]);
-
-  //   const handlePopState = () => {
-  //     setCurrentUrl(window.location.href);
-  //   };
-
-  //   window.addEventListener('popstate', handlePopState);
-
-  //   // 컴포넌트 언마운트 시 이벤트 리스너 제거
-  //   return () => {
-  //     window.removeEventListener('popstate', handlePopState);
-  //   };
-  // }, [currentUrl, fetchStudyPlaces]);
-
-  // useEffect(() => {
-  //   // URL에서 쿼리 스트링 파라미터 파싱
-  //   const params = new URLSearchParams(window.location.search);
-  //   const urlCategory = params.get('category') || '';
-  //   const urlPlaceType = params.get('placeType') || '';
-
-  //   // URL 상태가 변경되었는지 확인 후 상태 업데이트
-  //   if (
-  //     urlCategory !== selectedState.category ||
-  //     urlPlaceType !== selectedState.placeType
-  //   ) {
-  //     setSelectedState({ category: urlCategory, placeType: urlPlaceType });
-  //     fetchStudyPlaces(urlCategory, urlPlaceType);
-  //   }
-  // }, [currentUrl, fetchStudyPlaces]);
-
-  // 버튼을 누른다. 변경된 카테고리에 따라서 fetchStudyPlaces를 호출한다.
-  // url을 공유받았을때 똑같이 스터디룸으로 표현된 데이터를 보여주자.
-  // 버튼을 눌렀을때도 url이 변경된다. url이 변경되었으니깐 fetchStudyPlaces도 url 변경 여부에 따라서 호출이 된다.
-
-  // useEffect(() => {
-  //   if (currentUrl.includes('?')) {
-  //     const url = currentUrl.split('?')[1].split('=');
-
-  //     const placeType =
-  //       url[0] === 'placeType' ? decodeURIComponent(url[1]) : '';
-  //     const category = url[0] === 'category' ? decodeURIComponent(url[1]) : '';
-
-  //     console.log(placeType, category);
-
-  //     fetchStudyPlaces(placeType, category);
-  //   } else {
-  //     fetchStudyPlaces(selectedCategory, selectedCategory);
-  //   }
-
-  //   console.log(selectedCategory, selectedPlaceType);
-  //   fetchStudyPlaces(selectedCategory, selectedPlaceType);
-  // }, [selectedCategory, selectedPlaceType, currentUrl]);
 
   return (
     <>
