@@ -247,33 +247,12 @@ const Main: React.FC = () => {
       <ToastContainer />
       <div>
         <main className='mx-20 lg:px-8'>
-          <div className='flex items-baseline justify-start pb-2 pt-6'>
-            <h1 className='text-4xl font-bold tracking-tight text-gray-900 dark:text-gray-200'>
-              Categories
-            </h1>
-            <div className='pb-4'>
-              <div className='ml-48 text-2xl font-bold text-gray-700 dark:text-gray-300'>
-                {nickname ? (
-                  `${nickname}님이 목표와 꿈을 이루시도록 스플이 함께할게요!`
-                ) : (
-                  <>
-                    3초만에{' '}
-                    <Link href='/sign/signin'>
-                      <span className='text-indigo-500 underline decoration-indigo-500'>
-                        로그인
-                      </span>
-                    </Link>{' '}
-                    하셔서 다양한 서비스를 만나보세요!
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
-
           <section aria-labelledby='products-heading' className='pb-24 pt-6'>
             <div className='grid grid-cols-1 gap-x-8 gap-y-10 lg:grid-cols-4'>
               <form className='hidden lg:block'>
-                <h3 className='sr-only'>Categories</h3>
+                <h1 className='pb-8 text-4xl font-bold tracking-tight text-gray-900 dark:text-gray-200'>
+                  Categories
+                </h1>
                 <div className='space-y-6 pb-8 text-xl font-medium text-gray-900 dark:text-gray-200'>
                   {/* 필터 처리 로직 완성되면 map으로 돌릴 거임 */}
                   {/* <div><button>추천</button></div> */}
@@ -407,10 +386,44 @@ const Main: React.FC = () => {
 
               {loading ? (
                 <div className='lg:col-span-3'>
+                  <div className='pt-2 pb-8'>
+                    <div className='text-2xl font-bold text-gray-700 dark:text-gray-300'>
+                      {nickname ? (
+                        `${nickname}님이 목표와 꿈을 이루시도록 스플이 함께할게요!`
+                      ) : (
+                        <>
+                          3초만에{' '}
+                          <Link href='/sign/signin'>
+                            <span className='text-indigo-500 underline decoration-indigo-500'>
+                              로그인
+                            </span>
+                          </Link>{' '}
+                          하셔서 다양한 서비스를 만나보세요!
+                        </>
+                      )}
+                    </div>
+                  </div>
                   <div className='flex flex-wrap'>{renderSkeletonCards(9)}</div>
                 </div>
               ) : (
                 <div className='lg:col-span-3'>
+                  <div className='pt-2 pb-8'>
+                    <div className='text-2xl font-bold text-gray-700 dark:text-gray-300'>
+                      {nickname ? (
+                        `${nickname}님이 목표와 꿈을 이루시도록 스플이 함께할게요!`
+                      ) : (
+                        <>
+                          3초만에{' '}
+                          <Link href='/sign/signin'>
+                            <span className='text-indigo-500 underline decoration-indigo-500'>
+                              로그인
+                            </span>
+                          </Link>{' '}
+                          하셔서 다양한 서비스를 만나보세요!
+                        </>
+                      )}
+                    </div>
+                  </div>
                   <div className='flex flex-wrap'>
                     {studyPlaces.map((place) => (
                       <React.Fragment key={place.place_id}>
