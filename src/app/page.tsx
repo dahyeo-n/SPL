@@ -6,10 +6,11 @@ import { Session } from '@supabase/supabase-js';
 
 import Header from '@/components/common/Header';
 import { CustomMainCard } from '../components/common/CustomMainCard';
+import SkeletonCard from '../components/common/SkeletonCard';
 
 import { useRouter } from 'next/navigation';
 
-import { Spacer } from '@nextui-org/react';
+import { Spacer, Card, Skeleton } from '@nextui-org/react';
 import { ToastContainer, toast } from 'react-toastify';
 import Link from 'next/link';
 
@@ -162,7 +163,6 @@ const Main: React.FC = () => {
   const handleCategorySelection = (category: string) => {
     if (category !== selectedState.category) {
       window.history.pushState({}, '', `?category=${category}`);
-      // await fetchStudyPlaces(category, selectedState.placeType);
       setSelectedState({ category, placeType: '' });
     }
   };
@@ -170,7 +170,6 @@ const Main: React.FC = () => {
   const handlePlaceTypeSelection = (placeType: string) => {
     if (placeType !== selectedState.placeType) {
       window.history.pushState({}, '', `?placeType=${placeType}`);
-      // await fetchStudyPlaces(selectedState.category, placeType);
       setSelectedState({ category: '', placeType });
     }
   };
@@ -186,7 +185,6 @@ const Main: React.FC = () => {
       let query = supabase
         .from('study_places')
         .select('*')
-        // .select('id, name, category, place_type, rating') // 필요한 필드만 선택
         .order('rating', { ascending: false });
 
       if (category) {
@@ -211,18 +209,9 @@ const Main: React.FC = () => {
     []
   );
 
-  // 현재 페이지의 URL 저장
-  // const [currentUrl, setCurrentUrl] = useState(window.location.href);
-
   // 윈도우의 popstate 이벤트 리스너를 설정하여 URL 변경을 감지
   useEffect(() => {
     const loadFromURL = () => {
-      // const url = new URL(currentUrl);
-      // const category = url.searchParams.get('category') || '';
-      // const placeType = url.searchParams.get('placeType') || '';
-
-      // // 파싱한 쿼리 스트링으로 데이터 로딩 함수 호출
-      // fetchStudyPlaces(category, placeType);
       const params = new URLSearchParams(window.location.search);
       const category = params.get('category') || '';
       const placeType = params.get('placeType') || '';
@@ -246,56 +235,11 @@ const Main: React.FC = () => {
     };
   }, [selectedState.category, selectedState.placeType]);
 
-  //   const handlePopState = () => {
-  //     setCurrentUrl(window.location.href);
-  //   };
-
-  //   window.addEventListener('popstate', handlePopState);
-
-  //   // 컴포넌트 언마운트 시 이벤트 리스너 제거
-  //   return () => {
-  //     window.removeEventListener('popstate', handlePopState);
-  //   };
-  // }, [currentUrl, fetchStudyPlaces]);
-
-  // useEffect(() => {
-  //   // URL에서 쿼리 스트링 파라미터 파싱
-  //   const params = new URLSearchParams(window.location.search);
-  //   const urlCategory = params.get('category') || '';
-  //   const urlPlaceType = params.get('placeType') || '';
-
-  //   // URL 상태가 변경되었는지 확인 후 상태 업데이트
-  //   if (
-  //     urlCategory !== selectedState.category ||
-  //     urlPlaceType !== selectedState.placeType
-  //   ) {
-  //     setSelectedState({ category: urlCategory, placeType: urlPlaceType });
-  //     fetchStudyPlaces(urlCategory, urlPlaceType);
-  //   }
-  // }, [currentUrl, fetchStudyPlaces]);
-
-  // 버튼을 누른다. 변경된 카테고리에 따라서 fetchStudyPlaces를 호출한다.
-  // url을 공유받았을때 똑같이 스터디룸으로 표현된 데이터를 보여주자.
-  // 버튼을 눌렀을때도 url이 변경된다. url이 변경되었으니깐 fetchStudyPlaces도 url 변경 여부에 따라서 호출이 된다.
-
-  // useEffect(() => {
-  //   if (currentUrl.includes('?')) {
-  //     const url = currentUrl.split('?')[1].split('=');
-
-  //     const placeType =
-  //       url[0] === 'placeType' ? decodeURIComponent(url[1]) : '';
-  //     const category = url[0] === 'category' ? decodeURIComponent(url[1]) : '';
-
-  //     console.log(placeType, category);
-
-  //     fetchStudyPlaces(placeType, category);
-  //   } else {
-  //     fetchStudyPlaces(selectedCategory, selectedCategory);
-  //   }
-
-  //   console.log(selectedCategory, selectedPlaceType);
-  //   fetchStudyPlaces(selectedCategory, selectedPlaceType);
-  // }, [selectedCategory, selectedPlaceType, currentUrl]);
+  const renderSkeletonCards = (count: number) => {
+    return Array.from({ length: count }, (_, index) => (
+      <SkeletonCard key={index} />
+    ));
+  };
 
   return (
     <>
@@ -303,33 +247,12 @@ const Main: React.FC = () => {
       <ToastContainer />
       <div>
         <main className='mx-20 lg:px-8'>
-          <div className='flex items-baseline justify-start pb-2 pt-6'>
-            <h1 className='text-4xl font-bold tracking-tight text-gray-900 dark:text-gray-200'>
-              Categories
-            </h1>
-            <div className='pb-4'>
-              <div className='ml-48 text-2xl font-bold text-gray-700 dark:text-gray-300'>
-                {nickname ? (
-                  `${nickname}님이 목표와 꿈을 이루시도록 스플이 함께할게요!`
-                ) : (
-                  <>
-                    3초만에{' '}
-                    <Link href='/sign/signin'>
-                      <span className='text-indigo-500 underline decoration-indigo-500'>
-                        로그인
-                      </span>
-                    </Link>{' '}
-                    하셔서 다양한 서비스를 만나보세요!
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
-
           <section aria-labelledby='products-heading' className='pb-24 pt-6'>
             <div className='grid grid-cols-1 gap-x-8 gap-y-10 lg:grid-cols-4'>
               <form className='hidden lg:block'>
-                <h3 className='sr-only'>Categories</h3>
+                <h1 className='pb-8 text-4xl font-bold tracking-tight text-gray-900 dark:text-gray-200'>
+                  Categories
+                </h1>
                 <div className='space-y-6 pb-8 text-xl font-medium text-gray-900 dark:text-gray-200'>
                   {/* 필터 처리 로직 완성되면 map으로 돌릴 거임 */}
                   {/* <div><button>추천</button></div> */}
@@ -462,9 +385,45 @@ const Main: React.FC = () => {
               </form>
 
               {loading ? (
-                <div>Loading...</div>
+                <div className='lg:col-span-3'>
+                  <div className='pt-2 pb-8'>
+                    <div className='text-2xl font-bold text-gray-700 dark:text-gray-300'>
+                      {nickname ? (
+                        `${nickname}님이 목표와 꿈을 이루시도록 스플이 함께할게요!`
+                      ) : (
+                        <>
+                          3초만에{' '}
+                          <Link href='/sign/signin'>
+                            <span className='text-indigo-500 underline decoration-indigo-500'>
+                              로그인
+                            </span>
+                          </Link>{' '}
+                          하셔서 다양한 서비스를 만나보세요!
+                        </>
+                      )}
+                    </div>
+                  </div>
+                  <div className='flex flex-wrap'>{renderSkeletonCards(9)}</div>
+                </div>
               ) : (
                 <div className='lg:col-span-3'>
+                  <div className='pt-2 pb-8'>
+                    <div className='text-2xl font-bold text-gray-700 dark:text-gray-300'>
+                      {nickname ? (
+                        `${nickname}님이 목표와 꿈을 이루시도록 스플이 함께할게요!`
+                      ) : (
+                        <>
+                          3초만에{' '}
+                          <Link href='/sign/signin'>
+                            <span className='text-indigo-500 underline decoration-indigo-500'>
+                              로그인
+                            </span>
+                          </Link>{' '}
+                          하셔서 다양한 서비스를 만나보세요!
+                        </>
+                      )}
+                    </div>
+                  </div>
                   <div className='flex flex-wrap'>
                     {studyPlaces.map((place) => (
                       <React.Fragment key={place.place_id}>

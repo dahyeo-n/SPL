@@ -339,7 +339,7 @@ const My: React.FC = () => {
             Categories
           </h1>
           <div className='pb-4'>
-            <div className='ml-48 text-2xl font-bold text-gray-700 dark:text-gray-300'>
+            <div className='ml-72 text-2xl font-bold text-gray-700 dark:text-gray-300'>
               {selectedCategory === 'profile' &&
                 `${userProfile?.nickname}님의 프로필 정보`}
               {selectedCategory === 'scrapped' &&
@@ -349,7 +349,6 @@ const My: React.FC = () => {
             </div>
           </div>
         </div>
-
         {selectedCategory === 'profile' && (
           <div aria-labelledby='products-heading' className='pb-24 pt-6'>
             <div className='grid grid-cols-1 gap-x-8 gap-y-10 lg:grid-cols-4'>
@@ -379,6 +378,7 @@ const My: React.FC = () => {
 
               <div className='lg:col-span-1'>
                 <div className='w-full overflow-hidden mb-8'>
+                  <div className='pb-4'></div>
                   <div
                     className='rounded-lg bg-cover bg-center bg-no-repeat w-[300px] h-[300px] p-4'
                     style={{
@@ -609,7 +609,6 @@ const My: React.FC = () => {
                               </p>
                             </CardFooter>
                           </Card>
-                          // </Link>
                         ))}
                       </div>
                     </div>

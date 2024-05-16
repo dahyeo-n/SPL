@@ -10,8 +10,8 @@ export const CustomMainCard = ({ place, onCardClick }) => (
         className='h-48 rounded-lg bg-cover bg-center bg-no-repeat'
         style={{ backgroundImage: `url(${place.photo_url})` }}
       ></div>
-      <div className='space-y-1 pt-2'>
-        <div className='text-xl font-bold pt-2'>{place.place_name}</div>
+      <div className='space-y-2 pt-2'>
+        <div className='text-2xl font-bold pt-2'>{place.place_name}</div>
         <div className='text-lg'>[NAVER 평점] {place.rating ?? '없음'}</div>
         <div className='text-lg'>[위치] {place.address}</div>
         <div className='text-lg'>[운영시간] {place.operating_hours}</div>

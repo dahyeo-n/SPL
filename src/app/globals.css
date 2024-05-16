@@ -26,6 +26,10 @@
     rgb(var(--background-start-rgb));
 } */
 
+html {
+  font-size: 80%;
+}
+
 @layer utilities {
   .text-balance {
     text-wrap: balance;

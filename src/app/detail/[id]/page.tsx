@@ -529,7 +529,7 @@ const Detail = () => {
 
                     <div className='my-16'>
                       <RadioGroup
-                        className='col-span-12 md:col-span-6 md:mb-0 font-bold'
+                        className='col-span-12 md:col-span-6 md:mb-0 font-bold text-lg'
                         value={comment.rating}
                         onChange={(e) => {
                           const selectedRating = e.target.value;
@@ -550,16 +550,15 @@ const Detail = () => {
                     <Textarea
                       name='contents'
                       variant='faded'
-                      label='내용'
                       labelPlacement='outside'
                       value={comment.contents}
                       onChange={handleCommentInputChange}
                       placeholder='내용을 300자 이하로 작성해주세요.'
-                      className='col-span-12 md:col-span-6 mb-6 md:mb-0 font-bold'
+                      className='col-span-12 md:col-span-6 mb-6 md:mb-0 font-bold text-lg'
                       maxLength={300}
                     />
                     <Button
-                      className='w-full'
+                      className='w-full text-lg'
                       color='primary'
                       variant='shadow'
                       onPress={isEditing ? handleUpdateComment : saveComment}
@@ -573,13 +572,15 @@ const Detail = () => {
               <div className='lg:col-span-12 ml-2'>
                 <Card className='w-full p-6 pb-8'>
                   <div className='space-y-1 py-2 mx-2'>
-                    <div className='text-2xl font-bold mb-7'>작성된 댓글</div>
+                    <div className='text-2xl font-bold mb-7 ml-3'>
+                      작성된 댓글
+                    </div>
                     <div className='flex flex-wrap gap-4'>
                       {comments.length > 0 ? (
                         comments.map((comment) => (
                           <Card
                             key={comment.comment_id}
-                            className='w-full max-w-[337px] relative'
+                            className='w-full max-w-[337px] relative mx-3'
                           >
                             <CardHeader className='justify-between mt-2 ml-2'>
                               <div className='flex gap-5'>
@@ -590,7 +591,7 @@ const Detail = () => {
                                   src={comment.user_profile_image}
                                 />
                                 <div className='flex flex-col gap-1 items-start justify-center'>
-                                  <h4 className='text-small font-semibold leading-none text-default-600'>
+                                  <h4 className='text-ml font-semibold leading-none text-default-600'>
                                     {comment.nickname}
                                   </h4>
                                   <h5 className='text-small tracking-tight text-default-400'>
@@ -648,7 +649,7 @@ const Detail = () => {
                             </CardHeader>
 
                             <CardBody className='m-2 px-3 py-0'>
-                              <span className='pt-2 text-ml font-bold'>
+                              <span className='pt-2 text-lg'>
                                 {comment.contents}
                               </span>
                             </CardBody>

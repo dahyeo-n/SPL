@@ -14,7 +14,7 @@ export const CustomDetailCard = ({ place, isScrapped, onScrap, onUnscrap }) => {
 
   return (
     <Card className='w-full p-4 mx-2 mb-10 pb-7' radius='2xl'>
-      <div className='space-y-2'>
+      <div className='space-y-3'>
         <CardHeader className='justify-between'>
           <div className='text-3xl font-bold'>{place.place_name}</div>
           <Button
