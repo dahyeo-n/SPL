@@ -423,32 +423,35 @@ const Detail = () => {
     }
 
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('comments')
         .update({
           contents: comment.contents,
           rating: comment.rating,
         })
-        .eq('comment_id', editingCommentId);
+        .eq('comment_id', editingCommentId)
+        .select();
 
       if (error) throw error;
 
-      setComments((prevComments) =>
-        prevComments.map((comment) =>
-          comment.comment_id === editingCommentId
-            ? {
-                ...comment,
-                contents: comment.contents,
-                rating: comment.rating,
-              }
-            : comment
-        )
-      );
+      if (data) {
+        setComments((prevComments) =>
+          prevComments.map((comment) =>
+            comment.comment_id === editingCommentId
+              ? {
+                  ...comment,
+                  ...data[0],
+                }
+              : comment
+          )
+        );
 
-      // 수정 모드 종료
-      setIsEditing(false);
-      setEditingCommentId(null);
-      setComment({ contents: '', rating: '' });
+        // 수정 모드 종료
+        setIsEditing(false);
+        setEditingCommentId(null);
+        setComment({ contents: '', rating: '' });
+        toast.success('댓글이 수정되었습니다.');
+      }
     } catch (error) {
       toast.error('댓글 수정에 실패했습니다.');
       console.error('Error updating comment: ', error);
