@@ -32,6 +32,7 @@
     "eslint-config-next": "14.1.4",
     "postcss": "^8",
     "tailwindcss": "^3.3.0",
+    "tailwindcss-pseudo-elements": "^2.0.0",
     "typescript": "^5"
   }
 }

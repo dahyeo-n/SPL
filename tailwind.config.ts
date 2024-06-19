@@ -1,5 +1,6 @@
 import type { Config } from 'tailwindcss';
 import { nextui } from '@nextui-org/react';
+import pseudoElementsPlugin from 'tailwindcss-pseudo-elements';
 
 const config: Config = {
   content: [
@@ -30,6 +31,14 @@ const config: Config = {
     },
   },
   darkMode: 'class',
-  plugins: [nextui()],
+  plugins: [
+    nextui(),
+    pseudoElementsPlugin({
+      customPseudoClasses: ['hover'],
+      customPseudoElements: ['before'],
+      emptyContent: false,
+      variantOrder: ['before', 'hover:before'],
+    }),
+  ],
 };
 export default config;

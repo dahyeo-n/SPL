@@ -267,12 +267,12 @@ const Main: React.FC = () => {
                         });
                         fetchStudyPlaces('', '');
                       }}
-                      className={`${
+                      className={`relative overflow-hidden before:absolute before:inset-x-0 before:bottom-0 before:h-[2px] before:bg-crimson before:scale-x-0 hover:before:scale-x-100 before:transition-transform ${
                         selectedState.category === '' &&
                         selectedState.placeType === ''
                           ? 'text-gray-900 dark:text-gray-200'
                           : 'text-gray-400 dark:text-gray-500'
-                      }`}
+                      } hover:text-gray-900 hover:dark:text-gray-200 transform transition-transform duration-300 hover:translate-x-1`}
                     >
                       전체
                     </button>
@@ -281,11 +281,11 @@ const Main: React.FC = () => {
                     <button
                       type='button'
                       onClick={() => handlePlaceTypeSelection('스터디룸')}
-                      className={`${
+                      className={`relative overflow-hidden before:absolute before:inset-x-0 before:bottom-0 before:h-[2px] before:bg-crimson before:scale-x-0 hover:before:scale-x-100 before:transition-transform ${
                         selectedState.placeType === '스터디룸'
                           ? 'text-gray-900 dark:text-gray-200'
                           : 'text-gray-400 dark:text-gray-500'
-                      }`}
+                      } hover:text-gray-900 hover:dark:text-gray-200 transform transition-transform duration-300 hover:translate-x-1`}
                     >
                       스터디룸
                     </button>
@@ -294,11 +294,11 @@ const Main: React.FC = () => {
                     <button
                       type='button'
                       onClick={() => handlePlaceTypeSelection('스터디카페')}
-                      className={`${
+                      className={`relative overflow-hidden before:absolute before:inset-x-0 before:bottom-0 before:h-[2px] before:bg-crimson before:scale-x-0 hover:before:scale-x-100 before:transition-transform ${
                         selectedState.placeType === '스터디카페'
                           ? 'text-gray-900 dark:text-gray-200'
                           : 'text-gray-400 dark:text-gray-500'
-                      }`}
+                      } hover:text-gray-900 hover:dark:text-gray-200 transform transition-transform duration-300 hover:translate-x-1`}
                     >
                       스터디카페
                     </button>
@@ -307,11 +307,11 @@ const Main: React.FC = () => {
                     <button
                       type='button'
                       onClick={() => handlePlaceTypeSelection('일반카페')}
-                      className={`${
+                      className={`relative overflow-hidden before:absolute before:inset-x-0 before:bottom-0 before:h-[2px] before:bg-crimson before:scale-x-0 hover:before:scale-x-100 before:transition-transform ${
                         selectedState.placeType === '일반카페'
                           ? 'text-gray-900 dark:text-gray-200'
                           : 'text-gray-400 dark:text-gray-500'
-                      }`}
+                      } hover:text-gray-900 hover:dark:text-gray-200 transform transition-transform duration-300 hover:translate-x-1`}
                     >
                       일반카페
                     </button>
@@ -320,11 +320,11 @@ const Main: React.FC = () => {
                     <button
                       type='button'
                       onClick={() => handlePlaceTypeSelection('북카페')}
-                      className={`${
+                      className={`relative overflow-hidden before:absolute before:inset-x-0 before:bottom-0 before:h-[2px] before:bg-crimson before:scale-x-0 hover:before:scale-x-100 before:transition-transform ${
                         selectedState.placeType === '북카페'
                           ? 'text-gray-900 dark:text-gray-200'
                           : 'text-gray-400 dark:text-gray-500'
-                      }`}
+                      } hover:text-gray-900 hover:dark:text-gray-200 transform transition-transform duration-300 hover:translate-x-1`}
                     >
                       북카페
                     </button>
@@ -333,11 +333,11 @@ const Main: React.FC = () => {
                     <button
                       type='button'
                       onClick={() => handleCategorySelection('노트북 이용')}
-                      className={`${
+                      className={`relative overflow-hidden before:absolute before:inset-x-0 before:bottom-0 before:h-[2px] before:bg-crimson before:scale-x-0 hover:before:scale-x-100 before:transition-transform ${
                         selectedState.category === '노트북 이용'
                           ? 'text-gray-900 dark:text-gray-200'
                           : 'text-gray-400 dark:text-gray-500'
-                      }`}
+                      } hover:text-gray-900 hover:dark:text-gray-200 transform transition-transform duration-300 hover:translate-x-1`}
                     >
                       노트북 이용
                     </button>
@@ -346,11 +346,11 @@ const Main: React.FC = () => {
                     <button
                       type='button'
                       onClick={() => handleCategorySelection('조용하고 한적한')}
-                      className={`${
+                      className={`relative overflow-hidden before:absolute before:inset-x-0 before:bottom-0 before:h-[2px] before:bg-crimson before:scale-x-0 hover:before:scale-x-100 before:transition-transform ${
                         selectedState.category === '조용하고 한적한'
                           ? 'text-gray-900 dark:text-gray-200'
                           : 'text-gray-400 dark:text-gray-500'
-                      }`}
+                      } hover:text-gray-900 hover:dark:text-gray-200 transform transition-transform duration-300 hover:translate-x-1`}
                     >
                       조용하고 한적한
                     </button>
@@ -359,11 +359,11 @@ const Main: React.FC = () => {
                     <button
                       type='button'
                       onClick={() => handleCategorySelection('세련되고 깔끔한')}
-                      className={`${
+                      className={`relative overflow-hidden before:absolute before:inset-x-0 before:bottom-0 before:h-[2px] before:bg-crimson before:scale-x-0 hover:before:scale-x-100 before:transition-transform ${
                         selectedState.category === '세련되고 깔끔한'
                           ? 'text-gray-900 dark:text-gray-200'
                           : 'text-gray-400 dark:text-gray-500'
-                      }`}
+                      } hover:text-gray-900 hover:dark:text-gray-200 transform transition-transform duration-300 hover:translate-x-1`}
                     >
                       세련되고 깔끔한
                     </button>
@@ -372,11 +372,11 @@ const Main: React.FC = () => {
                     <button
                       type='button'
                       onClick={() => handleCategorySelection('뷰 맛집')}
-                      className={`${
+                      className={`relative overflow-hidden before:absolute before:inset-x-0 before:bottom-0 before:h-[2px] before:bg-crimson before:scale-x-0 hover:before:scale-x-100 before:transition-transform ${
                         selectedState.category === '뷰 맛집'
                           ? 'text-gray-900 dark:text-gray-200'
                           : 'text-gray-400 dark:text-gray-500'
-                      }`}
+                      } hover:text-gray-900 hover:dark:text-gray-200 transform transition-transform duration-300 hover:translate-x-1`}
                     >
                       뷰 맛집
                     </button>

@@ -251,7 +251,6 @@ const My: React.FC = () => {
         comment_id,
         study_place_id,
         rating,
-        title,
         contents,
         created_at,
         nickname,
