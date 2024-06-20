@@ -12,6 +12,7 @@ import { Badge, Button, Switch, Link, Input } from '@nextui-org/react';
 import { ThemeSwitcher } from '../theme/ThemeSwitcher';
 import { ToastContainer, toast } from 'react-toastify';
 import { SearchIcon } from './SearchIcon';
+import { Tooltip } from '@nextui-org/tooltip';
 
 import Image from 'next/image';
 import logo from '../../../public/images/SPL-logo.png';
@@ -111,24 +112,26 @@ const Navbar: React.FC = () => {
               onValueChange={(value) => setIsInvisible(!value)}
             ></Switch> */}
 
-            <button>
-              <svg
-                name='scrap'
-                xmlns='http://www.w3.org/2000/svg'
-                fill='none'
-                viewBox='0 0 24 24'
-                strokeWidth={1.5}
-                stroke='currentColor'
-                className='w-6 h-6'
-                onClick={() => router.push(`/my?category=scrapped`)}
-              >
-                <path
-                  strokeLinecap='round'
-                  strokeLinejoin='round'
-                  d='M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0 1 11.186 0Z'
-                />
-              </svg>
-            </button>
+            <Tooltip content='스크랩한 장소 모두 보기'>
+              <button>
+                <svg
+                  name='scrap'
+                  xmlns='http://www.w3.org/2000/svg'
+                  fill='none'
+                  viewBox='0 0 24 24'
+                  strokeWidth={1.5}
+                  stroke='currentColor'
+                  className='w-6 h-6'
+                  onClick={() => router.push(`/my?category=scrapped`)}
+                >
+                  <path
+                    strokeLinecap='round'
+                    strokeLinejoin='round'
+                    d='M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0 1 11.186 0Z'
+                  />
+                </svg>
+              </button>
+            </Tooltip>
 
             <Button
               className='ml-1'

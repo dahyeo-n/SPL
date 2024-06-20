@@ -1,5 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 
+import { Tooltip } from '@nextui-org/tooltip';
+
 declare global {
   interface Window {
     kakao: any;
@@ -39,6 +41,13 @@ const Map: React.FC<MapProps> = ({ address }) => {
             map: map,
             position: coords,
           });
+
+          // 카카오맵 검색결과로 이동하는 클릭 이벤트 핸들러 추가
+          window.kakao.maps.event.addListener(map, 'click', function () {
+            const encodedAddress = encodeURIComponent(address);
+            const kakaoMapUrl = `https://map.kakao.com/link/search/${encodedAddress}`;
+            window.open(kakaoMapUrl, '_blank');
+          });
         }
       });
     };
@@ -57,7 +66,11 @@ const Map: React.FC<MapProps> = ({ address }) => {
     }
   }, [address]);
 
-  return <div ref={mapContainer} className='w-100% h-[350px]' />;
+  return (
+    <Tooltip content='카카오맵으로 이동해서 위치 자세히 보기'>
+      <div ref={mapContainer} className='w-100% h-[350px]' />
+    </Tooltip>
+  );
 };
 
 export default Map;

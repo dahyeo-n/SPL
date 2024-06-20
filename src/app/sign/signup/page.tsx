@@ -31,7 +31,7 @@ const SignUpPage = () => {
   const [isVisible, setIsVisible] = React.useState(false);
 
   const router = useRouter();
-  const userTypes = ['중고등학생', '수험생', '대학생', '고시생', '직장인'];
+  const userTypes = ['중고등학생', '수험생', '대학(원)생', '고시생', '직장인'];
 
   const validateNickname = (value: any) => {
     return value.length > 0 && value.length <= 15;

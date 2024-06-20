@@ -57,6 +57,10 @@ interface Comments {
   user_profile_image: string;
 }
 
+interface CommentsArray {
+  [key: string]: HTMLDivElement | null;
+}
+
 const Detail = () => {
   const [studyPlace, setStudyPlace] = useState<StudyPlace | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -77,6 +81,9 @@ const Detail = () => {
   const { theme } = useTheme();
   const imageRef = useRef<HTMLImageElement>(null);
   const toggleRef = useRef<HTMLButtonElement>(null);
+
+  const commentFormRef = useRef<HTMLDivElement>(null);
+  const editedCommentRefs = useRef<CommentsArray>({});
 
   // ellipsis 토글 상태 관리
   const handleEllipsisToggle = (commentId: string) => {
@@ -407,6 +414,11 @@ const Detail = () => {
     return `${year}-${formattedMonth}-${formattedDay} ${formattedHours}:${formattedMinutes}`;
   };
 
+  // 댓글 폼과 수정된 댓글로 스크롤하는 함수
+  const scrollToRef = (ref: React.RefObject<HTMLDivElement>) => {
+    ref.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  };
+
   const handleEditButtonClick = (comment: Comments) => {
     setIsEditing(true);
     setEditingCommentId(comment.comment_id);
@@ -414,41 +426,53 @@ const Detail = () => {
       contents: comment.contents,
       rating: comment.rating,
     });
+    scrollToRef(commentFormRef);
   };
 
   const handleUpdateComment = async () => {
     if (!isCommentValid() || !editingCommentId) {
-      toast.error('모든 필드를 올바르게 입력해주세요.');
+      toast.error('모든 입력란을 올바르게 입력해주세요.');
       return;
     }
 
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('comments')
         .update({
           contents: comment.contents,
           rating: comment.rating,
         })
-        .eq('comment_id', editingCommentId);
+        .eq('comment_id', editingCommentId)
+        .select();
 
       if (error) throw error;
 
-      setComments((prevComments) =>
-        prevComments.map((comment) =>
-          comment.comment_id === editingCommentId
-            ? {
-                ...comment,
-                contents: comment.contents,
-                rating: comment.rating,
-              }
-            : comment
-        )
-      );
+      if (data) {
+        setComments((prevComments) =>
+          prevComments.map((comment) =>
+            comment.comment_id === editingCommentId
+              ? {
+                  ...comment,
+                  ...data[0],
+                }
+              : comment
+          )
+        );
 
-      // 수정 모드 종료
-      setIsEditing(false);
-      setEditingCommentId(null);
-      setComment({ contents: '', rating: '' });
+        const targetRef = editedCommentRefs.current[editingCommentId];
+        if (targetRef) {
+          const refObject: React.RefObject<HTMLDivElement> = {
+            current: targetRef,
+          };
+          scrollToRef(refObject);
+        }
+
+        // 수정 모드 종료
+        setIsEditing(false);
+        setEditingCommentId(null);
+        setComment({ contents: '', rating: '' });
+        toast.success('댓글이 수정되었습니다.');
+      }
     } catch (error) {
       toast.error('댓글 수정에 실패했습니다.');
       console.error('Error updating comment: ', error);
@@ -520,7 +544,7 @@ const Detail = () => {
                 </Card>
               </div>
 
-              <div className='lg:col-span-8 ml-24'>
+              <div className='lg:col-span-8 ml-24' ref={commentFormRef}>
                 <Card className='p-6 w-full'>
                   <div className='space-y-6 pb-2'>
                     <div className='text-2xl font-bold mb-4'>
@@ -580,6 +604,10 @@ const Detail = () => {
                         comments.map((comment) => (
                           <Card
                             key={comment.comment_id}
+                            ref={(element) => {
+                              editedCommentRefs.current[comment.comment_id] =
+                                element;
+                            }}
                             className='w-full max-w-[337px] relative mx-3'
                           >
                             <CardHeader className='justify-between mt-2 ml-2'>
