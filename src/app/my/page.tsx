@@ -67,6 +67,7 @@ const My: React.FC = () => {
   const [updatedNickname, setUpdatedNickname] = useState<string>('');
   const [updatedEmail, setUpdatedEmail] = useState<string>('');
   const [updatedUserType, setUpdatedUserType] = useState<string>('');
+
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [profileImage, setProfileImage] = useState<string>('');
 
@@ -74,7 +75,7 @@ const My: React.FC = () => {
   const [userComments, setUserComments] = useState<Comment[]>([]);
 
   const router = useRouter();
-  const userTypes = ['중고등학생', '수험생', '대학생', '고시생', '직장인'];
+  const userTypes = ['중고등학생', '수험생', '대학(원)생', '고시생', '직장인'];
 
   useEffect(() => {
     const getUserSession = async () => {
@@ -106,7 +107,10 @@ const My: React.FC = () => {
         .eq('user_uid', user_uid)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        toast.error('프로필 정보를 불러오는 데 실패했습니다.');
+        return;
+      }
 
       setUserProfile(data);
       setUpdatedNickname(data.nickname);
@@ -116,13 +120,6 @@ const My: React.FC = () => {
     } catch (error) {
       console.error('사용자 프로필을 불러오는 데 실패했습니다: ', error);
     }
-  };
-
-  const handleUserTypeSelectionChange = (
-    e: React.ChangeEvent<HTMLSelectElement>
-  ) => {
-    const value = e.target.value;
-    setUpdatedUserType(value);
   };
 
   const updateUserProfile = async () => {
@@ -331,7 +328,6 @@ const My: React.FC = () => {
 
   return (
     <div>
-      <ToastContainer />
       <main className='mx-20 lg:px-8'>
         <div className='flex items-baseline justify-start pb-2 pt-6'>
           <h1 className='text-4xl font-bold tracking-tight text-gray-900 dark:text-gray-200'>
@@ -378,6 +374,7 @@ const My: React.FC = () => {
               <div className='lg:col-span-1'>
                 <div className='w-full overflow-hidden mb-8'>
                   <div className='pb-4'></div>
+
                   <div
                     className='rounded-lg bg-cover bg-center bg-no-repeat w-[300px] h-[300px] p-4'
                     style={{
@@ -418,12 +415,13 @@ const My: React.FC = () => {
                   </label>
                   <Select
                     isRequired
-                    // className='max-w-xs'
                     className='mt-1 block w-full rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500'
-                    label='Type'
-                    placeholder='Select your type'
-                    defaultSelectedKeys={[]}
-                    onChange={handleUserTypeSelectionChange}
+                    label='유형'
+                    placeholder={updatedUserType}
+                    value={updatedUserType}
+                    onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
+                      setUpdatedUserType(e.target.value);
+                    }}
                   >
                     {userTypes.map((type) => (
                       <SelectItem key={type} value={type}>
