@@ -45,10 +45,17 @@ const Main: React.FC = () => {
 
   useEffect(() => {
     const getUserSession = async () => {
+      setLoading(true);
+
       try {
         const { data, error } = await supabase.auth.getSession();
 
         if (error) throw error;
+
+        if (!data.session) {
+          setLoading(false);
+          return;
+        }
 
         if (data?.session?.user) {
           const provider = data.session.user.app_metadata.provider;
@@ -63,6 +70,8 @@ const Main: React.FC = () => {
           }
         }
 
+        // 세션 정보가 있는 경우 프로필 정보도 조회
+        await fetchUserProfile(data.session.user.email!);
         setSession(data.session);
         console.log('로그인 데이터: ', data);
       } catch (error) {
@@ -137,7 +146,7 @@ const Main: React.FC = () => {
   }, [session?.user]);
 
   const fetchUserProfile = async (email: string) => {
-    if (!session?.user || typeof session.user.email !== 'string') {
+    if (!session?.user) {
       return;
     }
 
@@ -157,6 +166,8 @@ const Main: React.FC = () => {
       }
     } catch (error) {
       console.error('사용자 프로필을 불러오는 데 실패했습니다: ', error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -240,6 +251,22 @@ const Main: React.FC = () => {
       <SkeletonCard key={index} />
     ));
   };
+
+  useEffect(() => {
+    // 로그인 상태 변경 감지
+    supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log(`Auth event: ${event}`);
+      setSession(session); // 세션 상태 업데이트
+
+      if (session?.user) {
+        fetchUserProfile(session.user.email!); // 세션이 있는 경우 사용자 프로필 가져오기
+        setLoading(false);
+      } else {
+        setNickname(null); // 세션이 없으면 닉네임을 null로 설정하여 로그인하지 않은 상태 표시
+        setLoading(false);
+      }
+    });
+  }, []);
 
   return (
     <>
@@ -386,31 +413,16 @@ const Main: React.FC = () => {
 
               {loading ? (
                 <div className='lg:col-span-3'>
-                  <div className='pt-2 pb-8'>
-                    <div className='text-2xl font-bold text-gray-700 dark:text-gray-300'>
-                      {nickname ? (
-                        `${nickname}님이 목표와 꿈을 이루시도록 스플이 함께할게요!`
-                      ) : (
-                        <>
-                          3초만에{' '}
-                          <Link href='/sign/signin'>
-                            <span className='text-indigo-500 underline decoration-indigo-500'>
-                              로그인
-                            </span>
-                          </Link>{' '}
-                          하셔서 다양한 서비스를 만나보세요!
-                        </>
-                      )}
-                    </div>
-                  </div>
                   <div className='flex flex-wrap'>{renderSkeletonCards(9)}</div>
                 </div>
               ) : (
                 <div className='lg:col-span-3'>
                   <div className='pt-2 pb-8'>
                     <div className='text-2xl font-bold text-gray-700 dark:text-gray-300'>
-                      {nickname ? (
+                      {session && nickname ? (
                         `${nickname}님이 목표와 꿈을 이루시도록 스플이 함께할게요!`
+                      ) : session ? (
+                        `님이 목표와 꿈을 이루시도록 스플이 함께할게요!`
                       ) : (
                         <>
                           3초만에{' '}

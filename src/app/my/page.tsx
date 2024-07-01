@@ -1,25 +1,24 @@
 'use client';
 
+import { Session } from '@supabase/supabase-js';
 import React, { useEffect, useState } from 'react';
 import supabase from '../../supabaseClient';
-import { Session } from '@supabase/supabase-js';
 
-import { CustomMainCard } from '../../components/common/CustomMainCard';
 import { useRouter } from 'next/navigation';
+import { CustomMainCard } from '../../components/common/CustomMainCard';
 
-import { ToastContainer, toast } from 'react-toastify';
+import { toast } from 'react-toastify';
 
 import {
+  Avatar,
   Card,
-  CardHeader,
   CardBody,
   CardFooter,
-  Avatar,
-  Button,
-  Spacer,
+  CardHeader,
+  Link,
   Select,
   SelectItem,
-  Link,
+  Spacer,
 } from '@nextui-org/react';
 
 interface UserProfile {
@@ -124,6 +123,11 @@ const My: React.FC = () => {
 
   const updateUserProfile = async () => {
     if (!session?.user) return;
+
+    if (updatedNickname.length < 1 || updatedNickname.length > 15) {
+      toast.error('닉네임을 1자 이상 15자 이내로 작성해주세요.');
+      return;
+    }
 
     const user_id = session.user.id;
     const { error } = await supabase
@@ -398,6 +402,9 @@ const My: React.FC = () => {
                   <input
                     className='mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500'
                     name='nickname'
+                    minLength={1}
+                    maxLength={15}
+                    placeholder='닉네임 1자 이상 15자 이내'
                     value={updatedNickname}
                     onChange={(e) => setUpdatedNickname(e.target.value)}
                   />
@@ -405,6 +412,7 @@ const My: React.FC = () => {
                     이메일
                   </label>
                   <input
+                    disabled
                     className='mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500'
                     name='email'
                     value={updatedEmail}
