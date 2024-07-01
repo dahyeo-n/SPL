@@ -1,25 +1,24 @@
 'use client';
 
+import { Session } from '@supabase/supabase-js';
 import React, { useEffect, useState } from 'react';
 import supabase from '../../supabaseClient';
-import { Session } from '@supabase/supabase-js';
 
-import { CustomMainCard } from '../../components/common/CustomMainCard';
 import { useRouter } from 'next/navigation';
+import { CustomMainCard } from '../../components/common/CustomMainCard';
 
-import { ToastContainer, toast } from 'react-toastify';
+import { toast } from 'react-toastify';
 
 import {
+  Avatar,
   Card,
-  CardHeader,
   CardBody,
   CardFooter,
-  Avatar,
-  Button,
-  Spacer,
+  CardHeader,
+  Link,
   Select,
   SelectItem,
-  Link,
+  Spacer,
 } from '@nextui-org/react';
 
 interface UserProfile {

@@ -413,31 +413,16 @@ const Main: React.FC = () => {
 
               {loading ? (
                 <div className='lg:col-span-3'>
-                  <div className='pt-2 pb-8'>
-                    <div className='text-2xl font-bold text-gray-700 dark:text-gray-300'>
-                      {nickname ? (
-                        `${nickname}님이 목표와 꿈을 이루시도록 스플이 함께할게요!`
-                      ) : (
-                        <>
-                          3초만에{' '}
-                          <Link href='/sign/signin'>
-                            <span className='text-indigo-500 underline decoration-indigo-500'>
-                              로그인
-                            </span>
-                          </Link>{' '}
-                          하셔서 다양한 서비스를 만나보세요!
-                        </>
-                      )}
-                    </div>
-                  </div>
                   <div className='flex flex-wrap'>{renderSkeletonCards(9)}</div>
                 </div>
               ) : (
                 <div className='lg:col-span-3'>
                   <div className='pt-2 pb-8'>
                     <div className='text-2xl font-bold text-gray-700 dark:text-gray-300'>
-                      {nickname ? (
+                      {session && nickname ? (
                         `${nickname}님이 목표와 꿈을 이루시도록 스플이 함께할게요!`
+                      ) : session ? (
+                        `님이 목표와 꿈을 이루시도록 스플이 함께할게요!`
                       ) : (
                         <>
                           3초만에{' '}
