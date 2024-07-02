@@ -70,7 +70,7 @@ const Navbar: React.FC = () => {
     <div className='flex h-14 mx-8 my-4 items-center justify-between'>
       <div>
         <Link href='/' className='font-bold text-lg'>
-          <Image src={logo} alt='SPL로고' width={115} height={100} />
+          <Image src={logo} alt='SPL 로고' width={115} height={100} />
         </Link>
       </div>
 
