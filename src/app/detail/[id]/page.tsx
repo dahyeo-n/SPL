@@ -258,15 +258,28 @@ const Detail = () => {
 
   // 공부 장소의 스크랩 여부 확인
   const checkScrapStatus = async () => {
-    if (session?.user?.id && studyPlace?.id) {
-      const { data } = await supabase
-        .from('study_place_scraps')
-        .select('id')
-        .eq('user_id', session.user.id)
-        .eq('study_place_id', studyPlace.id)
-        .single();
+    if (!session) {
+      setIsScrapped(false);
+      return;
+    }
 
-      setIsScrapped(!!data);
+    try {
+      const { data, error } = await supabase
+        .from('study_place_scraps')
+        .select('study_place_id')
+        .eq('user_id', session.user.id)
+        .eq('study_place_id', studyPlace?.place_id)
+        .limit(1);
+
+      if (error) {
+        console.error('스크랩 상태 조회 실패: ', error.message);
+        return;
+      }
+
+      setIsScrapped(data.length > 0); // data 배열의 길이를 확인하여 스크랩 상태 결정
+      console.log('스크랩 여부 확인: ', data);
+    } catch (err) {
+      console.error('스크랩 상태 확인 중 오류 발생: ', err);
     }
   };
 
@@ -280,10 +293,10 @@ const Detail = () => {
         const { data: existingScrap, error: existingScrapError } =
           await supabase
             .from('study_place_scraps')
-            .select('id')
+            .select('study_place_id')
             .eq('user_id', session.user.id)
             .eq('study_place_id', studyPlace.place_id)
-            .single();
+            .maybeSingle();
 
         if (existingScrap) {
           return;
