@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useCallback, useEffect, useState } from 'react';
 import supabase from '@/supabaseClient';
 import { Session } from '@supabase/supabase-js';
+import React, { useCallback, useEffect, useState } from 'react';
 
 import Header from '@/components/common/Header';
 import { CustomMainCard } from '../components/common/CustomMainCard';
@@ -10,9 +10,9 @@ import SkeletonCard from '../components/common/SkeletonCard';
 
 import { useRouter } from 'next/navigation';
 
-import { Spacer, Card, Skeleton } from '@nextui-org/react';
-import { ToastContainer, toast } from 'react-toastify';
+import { Spacer } from '@nextui-org/react';
 import Link from 'next/link';
+import { ToastContainer, toast } from 'react-toastify';
 
 interface StudyPlace {
   id: string;
