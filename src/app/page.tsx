@@ -2,7 +2,8 @@
 
 import supabase from '@/supabaseClient';
 import { Session } from '@supabase/supabase-js';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 
 import Header from '@/components/common/Header';
 import { CustomMainCard } from '../components/common/CustomMainCard';
@@ -30,12 +31,28 @@ interface StudyPlace {
   notes: string;
 }
 
+const fetchStudyPlaces = async (category: string, placeType: string) => {
+  let query = supabase
+    .from('study_places')
+    .select('*')
+    .order('rating', { ascending: false });
+
+  if (category) {
+    query = query.ilike('category', `%${category}%`);
+  }
+
+  if (placeType) {
+    query = query.ilike('place_type', `%${placeType}%`);
+  }
+
+  const { data, error } = await query;
+  if (error) throw new Error(error.message);
+  return data || [];
+};
+
 const Main: React.FC = () => {
-  const [studyPlaces, setStudyPlaces] = useState<StudyPlace[]>([]);
   const [session, setSession] = useState<Session | null>(null);
   const [nickname, setNickname] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-
   const [selectedState, setSelectedState] = useState({
     category: '',
     placeType: '',
@@ -43,34 +60,28 @@ const Main: React.FC = () => {
 
   const router = useRouter();
 
+  const { data: studyPlaces, isLoading } = useQuery({
+    queryKey: ['studyPlaces', selectedState.category, selectedState.placeType],
+    queryFn: () =>
+      fetchStudyPlaces(selectedState.category, selectedState.placeType),
+  });
+
   useEffect(() => {
     const getUserSession = async () => {
-      setLoading(true);
-
       try {
         const { data, error } = await supabase.auth.getSession();
-
         if (error) throw error;
-
-        if (!data.session) {
-          setLoading(false);
-          return;
-        }
-
+        if (!data.session) return;
         if (data?.session?.user) {
           const provider = data.session.user.app_metadata.provider;
-
           const isSocialLogin =
             provider === 'kakao' ||
             provider === 'google' ||
             provider === 'github';
-
           if (isSocialLogin) {
             saveOrUpdateUserProfile(data?.session?.user, provider);
           }
         }
-
-        // 세션 정보가 있는 경우 프로필 정보도 조회
         await fetchUserProfile(data.session.user.email!);
         setSession(data.session);
         console.log('로그인 데이터: ', data);
@@ -79,7 +90,6 @@ const Main: React.FC = () => {
         console.log(error);
       }
     };
-
     getUserSession();
   }, [router]);
 
@@ -166,8 +176,6 @@ const Main: React.FC = () => {
       }
     } catch (error) {
       console.error('사용자 프로필을 불러오는 데 실패했습니다: ', error);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -186,42 +194,6 @@ const Main: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchStudyPlaces(selectedState.category, selectedState.placeType);
-  }, [selectedState.category, selectedState.placeType]);
-
-  const fetchStudyPlaces = useCallback(
-    async (category: string, placeType: string) => {
-      setLoading(true);
-
-      let query = supabase
-        .from('study_places')
-        .select('*')
-        .order('rating', { ascending: false });
-
-      if (category) {
-        query = query.ilike('category', `%${category}%`);
-      }
-
-      if (placeType) {
-        query = query.ilike('place_type', `%${placeType}%`);
-      }
-
-      try {
-        const { data, error } = await query;
-        if (error) throw error;
-        setStudyPlaces(data || []); // 데이터 설정
-      } catch (error) {
-        console.error('데이터 조회 실패: ', error);
-        toast.error('데이터를 불러오는 데 실패했습니다.');
-      } finally {
-        setLoading(false); // 데이터 로딩 완료
-      }
-    },
-    []
-  );
-
-  // 윈도우의 popstate 이벤트 리스너를 설정하여 URL 변경을 감지
-  useEffect(() => {
     const loadFromURL = () => {
       const params = new URLSearchParams(window.location.search);
       const category = params.get('category') || '';
@@ -232,13 +204,10 @@ const Main: React.FC = () => {
         placeType !== selectedState.placeType
       ) {
         setSelectedState({ category, placeType });
-        fetchStudyPlaces(category, placeType);
       }
     };
 
     window.addEventListener('popstate', loadFromURL);
-
-    // 초기 로딩 및 URL 변경 감지
     loadFromURL();
 
     return () => {
@@ -253,17 +222,13 @@ const Main: React.FC = () => {
   };
 
   useEffect(() => {
-    // 로그인 상태 변경 감지
     supabase.auth.onAuthStateChange(async (event, session) => {
       console.log(`Auth event: ${event}`);
-      setSession(session); // 세션 상태 업데이트
-
+      setSession(session);
       if (session?.user) {
-        fetchUserProfile(session.user.email!); // 세션이 있는 경우 사용자 프로필 가져오기
-        setLoading(false);
+        fetchUserProfile(session.user.email!);
       } else {
-        setNickname(null); // 세션이 없으면 닉네임을 null로 설정하여 로그인하지 않은 상태 표시
-        setLoading(false);
+        setNickname(null);
       }
     });
   }, []);
@@ -281,8 +246,6 @@ const Main: React.FC = () => {
                   Categories
                 </h1>
                 <div className='space-y-6 pb-8 text-xl font-medium text-gray-900 dark:text-gray-200'>
-                  {/* 필터 처리 로직 완성되면 map으로 돌릴 거임 */}
-                  {/* <div><button>추천</button></div> */}
                   <div>
                     <button
                       type='button'
@@ -292,7 +255,6 @@ const Main: React.FC = () => {
                           category: '',
                           placeType: '',
                         });
-                        fetchStudyPlaces('', '');
                       }}
                       className={`relative overflow-hidden before:absolute before:inset-x-0 before:bottom-0 before:h-[2px] before:bg-crimson before:scale-x-0 hover:before:scale-x-100 before:transition-transform ${
                         selectedState.category === '' &&
@@ -411,7 +373,7 @@ const Main: React.FC = () => {
                 </div>
               </form>
 
-              {loading ? (
+              {isLoading ? (
                 <div className='lg:col-span-3'>
                   <div className='flex flex-wrap'>{renderSkeletonCards(9)}</div>
                 </div>
@@ -437,7 +399,7 @@ const Main: React.FC = () => {
                     </div>
                   </div>
                   <div className='flex flex-wrap'>
-                    {studyPlaces.map((place) => (
+                    {studyPlaces?.map((place) => (
                       <React.Fragment key={place.place_id}>
                         <div
                           className='cursor-pointer transform transition duration-300 ease-in-out hover:scale-105'

@@ -1,22 +1,6 @@
 // import { useQuery } from '@tanstack/react-query';
 // import supabase from '@/supabaseClient';
 
-// interface StudyPlace {
-//   id: string;
-//   place_id: string;
-//   category: string;
-//   place_name: string;
-//   place_type: string;
-//   photo_url: string;
-//   rating: number;
-//   address: string;
-//   operating_hours: string;
-//   contact: string;
-//   fee: string;
-//   website_url: string;
-//   notes: string;
-// }
-
 // const fetchStudyPlaces = async (
 //   category: string,
 //   placeType: string
