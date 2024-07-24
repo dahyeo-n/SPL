@@ -3,52 +3,16 @@
 import supabase from '@/supabaseClient';
 import { Session } from '@supabase/supabase-js';
 import React, { useEffect, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useRouter } from 'next/navigation';
+import useStudyPlaces from '@/hooks/useStudyPlaces';
 
 import Header from '@/components/common/Header';
 import { CustomMainCard } from '../components/common/CustomMainCard';
 import SkeletonCard from '../components/common/SkeletonCard';
 
-import { useRouter } from 'next/navigation';
-
 import { Spacer } from '@nextui-org/react';
 import Link from 'next/link';
 import { ToastContainer, toast } from 'react-toastify';
-
-interface StudyPlace {
-  id: string;
-  place_id: string;
-  category: string;
-  place_name: string;
-  place_type: string;
-  photo_url: string;
-  rating: number;
-  address: string;
-  operating_hours: string;
-  contact: string;
-  fee: string;
-  website_url: string;
-  notes: string;
-}
-
-const fetchStudyPlaces = async (category: string, placeType: string) => {
-  let query = supabase
-    .from('study_places')
-    .select('*')
-    .order('rating', { ascending: false });
-
-  if (category) {
-    query = query.ilike('category', `%${category}%`);
-  }
-
-  if (placeType) {
-    query = query.ilike('place_type', `%${placeType}%`);
-  }
-
-  const { data, error } = await query;
-  if (error) throw new Error(error.message);
-  return data || [];
-};
 
 const Main: React.FC = () => {
   const [session, setSession] = useState<Session | null>(null);
@@ -60,10 +24,16 @@ const Main: React.FC = () => {
 
   const router = useRouter();
 
-  const { data: studyPlaces, isLoading } = useQuery({
-    queryKey: ['studyPlaces', selectedState.category, selectedState.placeType],
-    queryFn: () =>
-      fetchStudyPlaces(selectedState.category, selectedState.placeType),
+  const { data: allStudyPlaces, isLoading } = useStudyPlaces();
+
+  const filteredStudyPlaces = allStudyPlaces?.filter((place) => {
+    const matchesCategory = selectedState.category
+      ? place.category?.includes(selectedState.category)
+      : true;
+    const matchesPlaceType = selectedState.placeType
+      ? place.place_type?.includes(selectedState.placeType)
+      : true;
+    return matchesCategory && matchesPlaceType;
   });
 
   useEffect(() => {
@@ -399,7 +369,7 @@ const Main: React.FC = () => {
                     </div>
                   </div>
                   <div className='flex flex-wrap'>
-                    {studyPlaces?.map((place) => (
+                    {filteredStudyPlaces?.map((place) => (
                       <React.Fragment key={place.place_id}>
                         <div
                           className='cursor-pointer transform transition duration-300 ease-in-out hover:scale-105'
