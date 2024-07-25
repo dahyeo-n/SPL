@@ -354,7 +354,6 @@ const Detail = () => {
     if (studyPlace) {
       checkScrapStatus();
     }
-    // alert('실행됐어요!');
   }, [session, studyPlace]);
 
   if (loading) return <p>Loading...</p>;

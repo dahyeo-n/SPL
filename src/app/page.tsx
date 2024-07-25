@@ -56,7 +56,6 @@ const Main: React.FC = () => {
         saveOrUpdateUserProfile(session.user, provider);
       }
 
-      // 사용자 프로필 정보 가져옴
       fetchUserProfile(session.user.email);
     } else {
       setNickname(null);
@@ -64,7 +63,7 @@ const Main: React.FC = () => {
   }, [session]);
 
   useEffect(() => {
-    // 세션 변경 상태 감지
+    // 세션 상태 변경 감지
     const { data } = supabase.auth.onAuthStateChange(() => {
       refetchSession(); // 세션 다시 가져옴
     });
@@ -195,6 +194,18 @@ const Main: React.FC = () => {
   // 세션 및 데이터 로딩 상태 관리
   const isLoading = sessionLoading || placesLoading;
 
+  const categories = [
+    { label: '전체', value: '' },
+    { label: '스터디룸', value: '스터디룸' },
+    { label: '스터디카페', value: '스터디카페' },
+    { label: '일반카페', value: '일반카페' },
+    { label: '북카페', value: '북카페' },
+    { label: '노트북 이용', value: '노트북 이용' },
+    { label: '조용하고 한적한', value: '조용하고 한적한' },
+    { label: '세련되고 깔끔한', value: '세련되고 깔끔한' },
+    { label: '뷰 맛집', value: '뷰 맛집' },
+  ];
+
   return (
     <>
       <Header />
@@ -208,130 +219,42 @@ const Main: React.FC = () => {
                   Categories
                 </h1>
                 <div className='space-y-6 pb-8 text-xl font-medium text-gray-900 dark:text-gray-200'>
-                  <div>
-                    <button
-                      type='button'
-                      onClick={() => {
-                        window.history.pushState({}, '', '/');
-                        setSelectedState({
-                          category: '',
-                          placeType: '',
-                        });
-                      }}
-                      className={`relative overflow-hidden before:absolute before:inset-x-0 before:bottom-0 before:h-[2px] before:bg-crimson before:scale-x-0 hover:before:scale-x-100 before:transition-transform ${
-                        selectedState.category === '' &&
-                        selectedState.placeType === ''
-                          ? 'text-gray-900 dark:text-gray-200'
-                          : 'text-gray-400 dark:text-gray-500'
-                      } hover:text-gray-900 hover:dark:text-gray-200 transform transition-transform duration-300 hover:translate-x-1`}
-                    >
-                      전체
-                    </button>
-                  </div>
-                  <div>
-                    <button
-                      type='button'
-                      onClick={() => handlePlaceTypeSelection('스터디룸')}
-                      className={`relative overflow-hidden before:absolute before:inset-x-0 before:bottom-0 before:h-[2px] before:bg-crimson before:scale-x-0 hover:before:scale-x-100 before:transition-transform ${
-                        selectedState.placeType === '스터디룸'
-                          ? 'text-gray-900 dark:text-gray-200'
-                          : 'text-gray-400 dark:text-gray-500'
-                      } hover:text-gray-900 hover:dark:text-gray-200 transform transition-transform duration-300 hover:translate-x-1`}
-                    >
-                      스터디룸
-                    </button>
-                  </div>
-                  <div>
-                    <button
-                      type='button'
-                      onClick={() => handlePlaceTypeSelection('스터디카페')}
-                      className={`relative overflow-hidden before:absolute before:inset-x-0 before:bottom-0 before:h-[2px] before:bg-crimson before:scale-x-0 hover:before:scale-x-100 before:transition-transform ${
-                        selectedState.placeType === '스터디카페'
-                          ? 'text-gray-900 dark:text-gray-200'
-                          : 'text-gray-400 dark:text-gray-500'
-                      } hover:text-gray-900 hover:dark:text-gray-200 transform transition-transform duration-300 hover:translate-x-1`}
-                    >
-                      스터디카페
-                    </button>
-                  </div>
-                  <div>
-                    <button
-                      type='button'
-                      onClick={() => handlePlaceTypeSelection('일반카페')}
-                      className={`relative overflow-hidden before:absolute before:inset-x-0 before:bottom-0 before:h-[2px] before:bg-crimson before:scale-x-0 hover:before:scale-x-100 before:transition-transform ${
-                        selectedState.placeType === '일반카페'
-                          ? 'text-gray-900 dark:text-gray-200'
-                          : 'text-gray-400 dark:text-gray-500'
-                      } hover:text-gray-900 hover:dark:text-gray-200 transform transition-transform duration-300 hover:translate-x-1`}
-                    >
-                      일반카페
-                    </button>
-                  </div>
-                  <div>
-                    <button
-                      type='button'
-                      onClick={() => handlePlaceTypeSelection('북카페')}
-                      className={`relative overflow-hidden before:absolute before:inset-x-0 before:bottom-0 before:h-[2px] before:bg-crimson before:scale-x-0 hover:before:scale-x-100 before:transition-transform ${
-                        selectedState.placeType === '북카페'
-                          ? 'text-gray-900 dark:text-gray-200'
-                          : 'text-gray-400 dark:text-gray-500'
-                      } hover:text-gray-900 hover:dark:text-gray-200 transform transition-transform duration-300 hover:translate-x-1`}
-                    >
-                      북카페
-                    </button>
-                  </div>
-                  <div>
-                    <button
-                      type='button'
-                      onClick={() => handleCategorySelection('노트북 이용')}
-                      className={`relative overflow-hidden before:absolute before:inset-x-0 before:bottom-0 before:h-[2px] before:bg-crimson before:scale-x-0 hover:before:scale-x-100 before:transition-transform ${
-                        selectedState.category === '노트북 이용'
-                          ? 'text-gray-900 dark:text-gray-200'
-                          : 'text-gray-400 dark:text-gray-500'
-                      } hover:text-gray-900 hover:dark:text-gray-200 transform transition-transform duration-300 hover:translate-x-1`}
-                    >
-                      노트북 이용
-                    </button>
-                  </div>
-                  <div>
-                    <button
-                      type='button'
-                      onClick={() => handleCategorySelection('조용하고 한적한')}
-                      className={`relative overflow-hidden before:absolute before:inset-x-0 before:bottom-0 before:h-[2px] before:bg-crimson before:scale-x-0 hover:before:scale-x-100 before:transition-transform ${
-                        selectedState.category === '조용하고 한적한'
-                          ? 'text-gray-900 dark:text-gray-200'
-                          : 'text-gray-400 dark:text-gray-500'
-                      } hover:text-gray-900 hover:dark:text-gray-200 transform transition-transform duration-300 hover:translate-x-1`}
-                    >
-                      조용하고 한적한
-                    </button>
-                  </div>
-                  <div>
-                    <button
-                      type='button'
-                      onClick={() => handleCategorySelection('세련되고 깔끔한')}
-                      className={`relative overflow-hidden before:absolute before:inset-x-0 before:bottom-0 before:h-[2px] before:bg-crimson before:scale-x-0 hover:before:scale-x-100 before:transition-transform ${
-                        selectedState.category === '세련되고 깔끔한'
-                          ? 'text-gray-900 dark:text-gray-200'
-                          : 'text-gray-400 dark:text-gray-500'
-                      } hover:text-gray-900 hover:dark:text-gray-200 transform transition-transform duration-300 hover:translate-x-1`}
-                    >
-                      세련되고 깔끔한
-                    </button>
-                  </div>
-                  <div>
-                    <button
-                      type='button'
-                      onClick={() => handleCategorySelection('뷰 맛집')}
-                      className={`relative overflow-hidden before:absolute before:inset-x-0 before:bottom-0 before:h-[2px] before:bg-crimson before:scale-x-0 hover:before:scale-x-100 before:transition-transform ${
-                        selectedState.category === '뷰 맛집'
-                          ? 'text-gray-900 dark:text-gray-200'
-                          : 'text-gray-400 dark:text-gray-500'
-                      } hover:text-gray-900 hover:dark:text-gray-200 transform transition-transform duration-300 hover:translate-x-1`}
-                    >
-                      뷰 맛집
-                    </button>
-                  </div>
+                  {categories.map((category) => (
+                    <div key={category.value}>
+                      <button
+                        type='button'
+                        onClick={() => {
+                          if (category.value === '') {
+                            window.history.pushState({}, '', '/');
+                            setSelectedState({ category: '', placeType: '' });
+                          } else if (
+                            [
+                              '스터디룸',
+                              '스터디카페',
+                              '일반카페',
+                              '북카페',
+                            ].includes(category.value)
+                          ) {
+                            handlePlaceTypeSelection(category.value);
+                          } else {
+                            handleCategorySelection(category.value);
+                          }
+                        }}
+                        className={`relative overflow-hidden before:absolute before:inset-x-0 before:bottom-0 before:h-[2px] before:bg-crimson before:scale-x-0 hover:before:scale-x-100 before:transition-transform ${
+                          (category.value === '' &&
+                            selectedState.category === '' &&
+                            selectedState.placeType === '') ||
+                          (category.value !== '' &&
+                            (selectedState.category === category.value ||
+                              selectedState.placeType === category.value))
+                            ? 'text-gray-900 dark:text-gray-200'
+                            : 'text-gray-400 dark:text-gray-500'
+                        } hover:text-gray-900 hover:dark:text-gray-200 transform transition-transform duration-300 hover:translate-x-1`}
+                      >
+                        {category.label}
+                      </button>
+                    </div>
+                  ))}
                 </div>
               </form>
 
