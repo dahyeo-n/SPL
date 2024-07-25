@@ -1,10 +1,10 @@
 'use client';
 
-import supabase from '@/supabaseClient';
-import { Session } from '@supabase/supabase-js';
 import React, { useEffect, useState } from 'react';
+import supabase from '@/supabaseClient';
 import { useRouter } from 'next/navigation';
 import useStudyPlaces from '@/hooks/useStudyPlaces';
+import useUserSession from '@/hooks/useSession';
 
 import Header from '@/components/common/Header';
 import { CustomMainCard } from '../components/common/CustomMainCard';
@@ -15,7 +15,6 @@ import Link from 'next/link';
 import { ToastContainer, toast } from 'react-toastify';
 
 const Main: React.FC = () => {
-  const [session, setSession] = useState<Session | null>(null);
   const [nickname, setNickname] = useState<string | null>(null);
   const [selectedState, setSelectedState] = useState({
     category: '',
@@ -24,8 +23,17 @@ const Main: React.FC = () => {
 
   const router = useRouter();
 
-  const { data: allStudyPlaces, isLoading } = useStudyPlaces();
+  // useStudyPlaces 훅을 사용하여 전체 데이터를 가져옴
+  const { data: allStudyPlaces, isLoading: placesLoading } = useStudyPlaces();
 
+  // useSession 훅을 사용하여 세션 데이터를 가져옴
+  const {
+    data: session,
+    isLoading: sessionLoading,
+    refetch: refetchSession,
+  } = useUserSession();
+
+  // 가져온 데이터에서 필터링 적용
   const filteredStudyPlaces = allStudyPlaces?.filter((place) => {
     const matchesCategory = selectedState.category
       ? place.category?.includes(selectedState.category)
@@ -36,38 +44,58 @@ const Main: React.FC = () => {
     return matchesCategory && matchesPlaceType;
   });
 
+  // 세션이 변경됐을 때 사용자 프로필 정보를 가져옴
   useEffect(() => {
-    const getUserSession = async () => {
-      try {
-        const { data, error } = await supabase.auth.getSession();
-        if (error) throw error;
-        if (!data.session) return;
-        if (data?.session?.user) {
-          const provider = data.session.user.app_metadata.provider;
-          const isSocialLogin =
-            provider === 'kakao' ||
-            provider === 'google' ||
-            provider === 'github';
-          if (isSocialLogin) {
-            saveOrUpdateUserProfile(data?.session?.user, provider);
-          }
-        }
-        await fetchUserProfile(data.session.user.email!);
-        setSession(data.session);
-        console.log('로그인 데이터: ', data);
-      } catch (error) {
-        toast.error('Session 처리에 오류가 발생했습니다.');
-        console.log(error);
+    if (session?.user && typeof session.user.email === 'string') {
+      const provider = session.user.app_metadata.provider;
+      const isSocialLogin =
+        provider === 'kakao' || provider === 'google' || provider === 'github';
+
+      // 소셜 로그인 사용자인지 확인 후, 프로필 저장 or 업데이트
+      if (isSocialLogin) {
+        saveOrUpdateUserProfile(session.user, provider);
       }
+
+      // 사용자 프로필 정보 가져옴
+      fetchUserProfile(session.user.email);
+    } else {
+      setNickname(null);
+    }
+  }, [session]);
+
+  useEffect(() => {
+    // 세션 변경 상태 감지
+    const { data } = supabase.auth.onAuthStateChange(() => {
+      refetchSession(); // 세션 다시 가져옴
+    });
+
+    // cleanup 함수를 사용해 로그아웃 시, 즉시 반영
+    return () => {
+      data.subscription?.unsubscribe();
     };
-    getUserSession();
-  }, [router]);
+  }, [refetchSession]);
+
+  // 이메일을 이용하여 사용자 프로필 정보를 가져오고, 가져온 닉네임을 상태로 설정
+  const fetchUserProfile = async (email: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .select('nickname')
+        .eq('email', email)
+        .maybeSingle();
+
+      if (error) throw error;
+      if (data) setNickname(data.nickname);
+    } catch (error) {
+      console.error('사용자 프로필을 불러오는 데 실패했습니다: ', error);
+    }
+  };
 
   const saveOrUpdateUserProfile = async (user: any, provider: string) => {
     const { data: existingProfiles, error: profileError } = await supabase
       .from('user_profiles')
       .select('nickname, user_profile_image')
-      .eq('email', user.email)
+      .eq('email', user.email) // 이메일을 기준으로 프로필 조회
       .maybeSingle();
 
     if (profileError) {
@@ -81,12 +109,15 @@ const Main: React.FC = () => {
 
     if (existingProfiles) return;
 
+    // 프로필이 존재하지 않으면 새로운 프로필 생성
     if (!existingProfiles) {
       const { data: existingNicknames } = await supabase
         .from('user_profiles')
         .select('nickname')
         .eq('nickname', nickname);
 
+      // 소셜 로그인 사용자의 프로필 이미지와 닉네임 저장
+      // 닉네임이 이미 존재하면 고유한 닉네임으로 업데이트
       if (existingNicknames && existingNicknames.length > 0) {
         nickname += `_${Date.now()}`;
       }
@@ -116,36 +147,6 @@ const Main: React.FC = () => {
       console.log('프로필 데이터: ', data);
     } catch (error) {
       console.error('프로필 저장 중 예외 발생: ', error);
-    }
-  };
-
-  useEffect(() => {
-    if (session?.user && typeof session.user.email === 'string') {
-      fetchUserProfile(session.user.email);
-    }
-  }, [session?.user]);
-
-  const fetchUserProfile = async (email: string) => {
-    if (!session?.user) {
-      return;
-    }
-
-    try {
-      const { data, error } = await supabase
-        .from('user_profiles')
-        .select('nickname')
-        .eq('email', email)
-        .maybeSingle();
-
-      if (error) {
-        throw error;
-      }
-
-      if (data) {
-        setNickname(data.nickname);
-      }
-    } catch (error) {
-      console.error('사용자 프로필을 불러오는 데 실패했습니다: ', error);
     }
   };
 
@@ -191,17 +192,8 @@ const Main: React.FC = () => {
     ));
   };
 
-  useEffect(() => {
-    supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log(`Auth event: ${event}`);
-      setSession(session);
-      if (session?.user) {
-        fetchUserProfile(session.user.email!);
-      } else {
-        setNickname(null);
-      }
-    });
-  }, []);
+  // 세션 및 데이터 로딩 상태 관리
+  const isLoading = sessionLoading || placesLoading;
 
   return (
     <>
