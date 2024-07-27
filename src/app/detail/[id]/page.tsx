@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 import supabase from '.././../../supabaseClient';
 import { Session } from '@supabase/supabase-js';
@@ -10,10 +11,9 @@ import Map from '../../../components/Map';
 
 import mediumZoom from 'medium-zoom';
 import { useTheme } from 'next-themes';
-import { ToastContainer, toast } from 'react-toastify';
+import { toast } from 'react-toastify';
 
 import {
-  Image,
   Card,
   CardHeader,
   CardBody,
@@ -24,22 +24,6 @@ import {
   RadioGroup,
   Button,
 } from '@nextui-org/react';
-
-interface StudyPlace {
-  id: string;
-  place_id: string;
-  category: string;
-  place_name: string;
-  place_type: string;
-  photo_url: string;
-  rating: number;
-  address: string;
-  operating_hours: string;
-  contact: string;
-  fee: string;
-  website_url: string;
-  notes: string;
-}
 
 interface Comment {
   contents: string;
@@ -62,15 +46,11 @@ interface CommentsArray {
 }
 
 const Detail = () => {
-  const [studyPlace, setStudyPlace] = useState<StudyPlace | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
   const [nickname, setNickname] = useState<string | null>(null);
   const [userProfileImage, setUserProfileImage] = useState<string | null>(null);
   const [session, setSession] = useState<Session | null>(null);
 
   const [isScrapped, setIsScrapped] = useState(false);
-  const [comments, setComments] = useState<Comments[]>([]);
-
   const [isOpen, setIsOpen] = useState(false);
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
@@ -84,6 +64,8 @@ const Detail = () => {
 
   const commentFormRef = useRef<HTMLDivElement>(null);
   const editedCommentRefs = useRef<CommentsArray>({});
+
+  const queryClient = useQueryClient();
 
   // ellipsis 토글 상태 관리
   const handleEllipsisToggle = (commentId: string) => {
@@ -149,58 +131,84 @@ const Detail = () => {
   ];
 
   const router = useRouter();
-
   const pathname = usePathname();
-  console.log('pathname: ', pathname);
 
-  useEffect(() => {
-    const fetchStudyPlaceData = async () => {
-      if (!pathname) return;
-
-      // URL에서 place_id 추출
+  // 공부 장소 데이터 fetching
+  const { data: studyPlace, isLoading: studyPlaceLoading } = useQuery({
+    queryKey: ['studyPlace', pathname],
+    queryFn: async () => {
       const placeId = pathname.split('/')[2];
-      console.log('placeId: ', placeId);
 
-      try {
-        setLoading(true);
+      const { data, error } = await supabase
+        .from('study_places')
+        .select('*')
+        .eq('place_id', placeId)
+        .single();
 
-        let { data, error } = await supabase
-          .from('study_places')
-          .select('*')
-          .eq('place_id', placeId)
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // 댓글 데이터 fetching
+  // comments가 undefined일 경우, 빈 배열을 기본값으로 설정
+  const { data: comments = [], isLoading: commentsLoading } = useQuery({
+    queryKey: ['comments', pathname],
+    queryFn: async () => {
+      const placeId = pathname.split('/')[2];
+
+      const { data, error } = await supabase
+        .from('comments')
+        .select('*')
+        .eq('study_place_id', placeId)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  // 사용자 세션 데이터 fetching
+  const { data: sessionData } = useQuery({
+    queryKey: ['session'],
+    queryFn: async () => {
+      const { data, error } = await supabase.auth.getSession();
+
+      if (error) throw error;
+      return data.session;
+    },
+  });
+
+  // 사용자 프로필 데이터 fetching
+  const { data: userProfile } = useQuery({
+    queryKey: ['userProfile', sessionData?.user?.email],
+    queryFn: async () => {
+      if (sessionData?.user?.email) {
+        const { data, error } = await supabase
+          .from('user_profiles')
+          .select('nickname, user_profile_image')
+          .eq('email', sessionData.user.email)
           .single();
 
         if (error) throw error;
-
-        setStudyPlace(data);
-        console.log('data: ', data);
-
-        if (data) {
-          try {
-            const { data, error } = await supabase
-              .from('comments')
-              .select('*')
-              .eq('study_place_id', placeId)
-              .order('created_at', { ascending: false });
-
-            if (error) throw error;
-            setComments(data || []);
-          } catch (error) {
-            console.error('댓글을 가져오는 중 오류 발생: ', error);
-          }
-        }
-      } catch (error) {
-        console.error(
-          '공부 장소 상세정보를 가져오는 데 실패하였습니다: ',
-          error
-        );
-      } finally {
-        setLoading(false);
+        return data;
       }
-    };
+    },
+    enabled: !!sessionData?.user?.email, // 이메일이 존재할 때만 쿼리 실행
+  });
 
-    fetchStudyPlaceData();
-  }, []);
+  useEffect(() => {
+    if (userProfile) {
+      setNickname(userProfile.nickname);
+      setUserProfileImage(userProfile.user_profile_image);
+    }
+  }, [userProfile]);
+
+  useEffect(() => {
+    if (sessionData) {
+      setSession(sessionData);
+    }
+  }, [sessionData]);
 
   const checkLoginAndRedirect = () => {
     if (!session) {
@@ -211,49 +219,6 @@ const Detail = () => {
       return false;
     }
     return true;
-  };
-
-  useEffect(() => {
-    const getUserSession = async () => {
-      try {
-        const { data, error } = await supabase.auth.getSession();
-        if (error) throw error;
-        setSession(data.session);
-        console.log('로그인 데이터: ', data);
-      } catch (error) {
-        toast.error('Session 처리에 오류가 발생했습니다.');
-        console.log(error);
-      }
-    };
-
-    getUserSession();
-  }, [router]);
-
-  useEffect(() => {
-    if (session?.user && typeof session.user.email === 'string') {
-      fetchUserProfile(session.user.email);
-    }
-  }, [session?.user]);
-
-  const fetchUserProfile = async (email: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('user_profiles')
-        .select('nickname, user_profile_image')
-        .eq('email', email)
-        .single();
-
-      if (error) {
-        throw error;
-      }
-
-      if (data) {
-        setNickname(data.nickname);
-        setUserProfileImage(data.user_profile_image);
-      }
-    } catch (error) {
-      console.error('사용자 프로필을 불러오는 데 실패했습니다: ', error);
-    }
   };
 
   // 공부 장소의 스크랩 여부 확인
@@ -277,32 +242,32 @@ const Detail = () => {
       }
 
       setIsScrapped(data.length > 0); // data 배열의 길이를 확인하여 스크랩 상태 결정
-      console.log('스크랩 여부 확인: ', data);
     } catch (err) {
       console.error('스크랩 상태 확인 중 오류 발생: ', err);
     }
   };
 
   // 스크랩 추가
+  // useMutation을 사용하여 스크랩 추가 및 취소 작업을 처리하고,
+  // 성공 시 queryClient.invalidateQueries를 호출하여 관련 쿼리를 무효화
   const addScrap = async () => {
     if (!checkLoginAndRedirect()) return;
 
     if (session && studyPlace && !isScrapped) {
       try {
-        // 해당 유저가 해당 공부 장소를 전에도 스크랩했는지 확인
-        const { data: existingScrap, error: existingScrapError } =
-          await supabase
-            .from('study_place_scraps')
-            .select('study_place_id')
-            .eq('user_id', session.user.id)
-            .eq('study_place_id', studyPlace.place_id)
-            .maybeSingle();
+        // 유저가 해당 공부 장소를 전에도 스크랩했는지 확인
+        const { data: existingScrap } = await supabase
+          .from('study_place_scraps')
+          .select('study_place_id')
+          .eq('user_id', session.user.id)
+          .eq('study_place_id', studyPlace.place_id)
+          .maybeSingle();
 
         if (existingScrap) {
           return;
         }
 
-        const { data, error } = await supabase
+        const { error } = await supabase
           .from('study_place_scraps')
           .insert([
             { user_id: session.user.id, study_place_id: studyPlace.place_id },
@@ -334,7 +299,7 @@ const Detail = () => {
           study_place_id: studyPlace.place_id,
         });
 
-      console.log('삭제 응답: ', data, error);
+      console.error('삭제 응답: ', data, error);
 
       if (error) {
         toast.error('스크랩 취소 실패');
@@ -354,10 +319,9 @@ const Detail = () => {
     if (studyPlace) {
       checkScrapStatus();
     }
-    // alert('실행됐어요!');
   }, [session, studyPlace]);
 
-  if (loading) return <p>Loading...</p>;
+  if (studyPlaceLoading || commentsLoading) return <p>Loading...</p>;
   if (!studyPlace) return <p>No study place found</p>;
 
   const handleRatingChange = (selectedRating: any) => {
@@ -371,6 +335,21 @@ const Detail = () => {
 
   const isCommentValid = () => {
     return comment.contents.trim() && comment.rating;
+  };
+
+  // 댓글 폼과 수정된 댓글로 스크롤하는 함수
+  const scrollToRef = (ref: React.RefObject<HTMLDivElement>) => {
+    ref.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  };
+
+  const scrollToComment = (commentId: string) => {
+    const targetRef = editedCommentRefs.current[commentId];
+    if (targetRef) {
+      const refObject: React.RefObject<HTMLDivElement> = {
+        current: targetRef,
+      };
+      scrollToRef(refObject);
+    }
   };
 
   const saveComment = async () => {
@@ -397,16 +376,18 @@ const Detail = () => {
 
     if (error) {
       toast.error('댓글을 저장하는 데 실패했습니다.');
-      console.error('Error saving comment: ', error);
-      return; // 에러가 있으면 여기서 함수 실행을 종료
+      console.error('댓글 저장 에러: ', error);
+      return;
     }
 
     if (data) {
-      setComments((prevComments) => [data[0], ...prevComments]);
+      queryClient.invalidateQueries({ queryKey: ['comments', pathname] });
       setComment({ contents: '', rating: '' });
-      console.log('Comment saved successfully: ', data);
       toast.success('댓글이 저장되었습니다.');
       router.refresh();
+      setTimeout(() => {
+        scrollToComment(data[0].comment_id); // 작성된 댓글로 스크롤
+      }, 500);
     }
   };
 
@@ -425,11 +406,6 @@ const Detail = () => {
     const formattedMinutes = minutes < 10 ? `0${minutes}` : minutes.toString();
 
     return `${year}-${formattedMonth}-${formattedDay} ${formattedHours}:${formattedMinutes}`;
-  };
-
-  // 댓글 폼과 수정된 댓글로 스크롤하는 함수
-  const scrollToRef = (ref: React.RefObject<HTMLDivElement>) => {
-    ref.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   };
 
   const handleEditButtonClick = (comment: Comments) => {
@@ -461,34 +437,18 @@ const Detail = () => {
       if (error) throw error;
 
       if (data) {
-        setComments((prevComments) =>
-          prevComments.map((comment) =>
-            comment.comment_id === editingCommentId
-              ? {
-                  ...comment,
-                  ...data[0],
-                }
-              : comment
-          )
-        );
-
-        const targetRef = editedCommentRefs.current[editingCommentId];
-        if (targetRef) {
-          const refObject: React.RefObject<HTMLDivElement> = {
-            current: targetRef,
-          };
-          scrollToRef(refObject);
-        }
-
-        // 수정 모드 종료
+        // setComments와 관련된 직접 상태 업데이트 제거
+        // queryClient.invalidateQueries의 무효화를 통해 자동으로 데이터 갱신
+        queryClient.invalidateQueries({ queryKey: ['comments', pathname] });
         setIsEditing(false);
         setEditingCommentId(null);
         setComment({ contents: '', rating: '' });
         toast.success('댓글이 수정되었습니다.');
+        scrollToComment(editingCommentId); // 수정한 댓글로 스크롤
       }
     } catch (error) {
       toast.error('댓글 수정에 실패했습니다.');
-      console.error('Error updating comment: ', error);
+      console.error('댓글 업데이트 에러: ', error);
     }
   };
 
@@ -508,19 +468,16 @@ const Detail = () => {
 
       if (error) throw error;
 
-      // 삭제된 후, 상태 업데이트
-      setComments((currentComments) =>
-        currentComments.filter((comment) => comment.comment_id !== commentId)
-      );
+      queryClient.invalidateQueries({ queryKey: ['comments', pathname] });
+      toast.success('댓글이 삭제되었습니다.');
     } catch (error) {
       toast.error('댓글 삭제에 실패했습니다.');
-      console.error('Error deleting comment: ', error);
+      console.error('댓글 삭제 에러: ', error);
     }
   };
 
   return (
     <>
-      <ToastContainer />
       <div className='flex justify-center w-full overflow-hidden mb-8'>
         <div
           className='rounded-lg w-[1000px] p-4 mx-2'

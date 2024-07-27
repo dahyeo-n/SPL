@@ -1,41 +1,21 @@
 'use client';
 
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import supabase from '@/supabaseClient';
-import { Session } from '@supabase/supabase-js';
+import { useRouter } from 'next/navigation';
+import useStudyPlaces from '@/hooks/useStudyPlaces';
+import useUserSession from '@/hooks/useUserSession';
 
 import Header from '@/components/common/Header';
 import { CustomMainCard } from '../components/common/CustomMainCard';
 import SkeletonCard from '../components/common/SkeletonCard';
 
-import { useRouter } from 'next/navigation';
-
-import { Spacer, Card, Skeleton } from '@nextui-org/react';
-import { ToastContainer, toast } from 'react-toastify';
+import { Spacer } from '@nextui-org/react';
 import Link from 'next/link';
-
-interface StudyPlace {
-  id: string;
-  place_id: string;
-  category: string;
-  place_name: string;
-  place_type: string;
-  photo_url: string;
-  rating: number;
-  address: string;
-  operating_hours: string;
-  contact: string;
-  fee: string;
-  website_url: string;
-  notes: string;
-}
+import { ToastContainer, toast } from 'react-toastify';
 
 const Main: React.FC = () => {
-  const [studyPlaces, setStudyPlaces] = useState<StudyPlace[]>([]);
-  const [session, setSession] = useState<Session | null>(null);
   const [nickname, setNickname] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-
   const [selectedState, setSelectedState] = useState({
     category: '',
     placeType: '',
@@ -43,51 +23,78 @@ const Main: React.FC = () => {
 
   const router = useRouter();
 
+  // useStudyPlaces 훅을 사용하여 전체 데이터를 가져옴
+  const { data: allStudyPlaces, isLoading: placesLoading } = useStudyPlaces();
+
+  // useSession 훅을 사용하여 세션 데이터를 가져옴
+  const {
+    data: session,
+    isLoading: sessionLoading,
+    refetch: refetchSession,
+  } = useUserSession();
+
+  // 가져온 데이터에서 필터링 적용
+  const filteredStudyPlaces = allStudyPlaces?.filter((place) => {
+    const matchesCategory = selectedState.category
+      ? place.category?.includes(selectedState.category)
+      : true;
+    const matchesPlaceType = selectedState.placeType
+      ? place.place_type?.includes(selectedState.placeType)
+      : true;
+    return matchesCategory && matchesPlaceType;
+  });
+
+  // 세션이 변경됐을 때 사용자 프로필 정보를 가져옴
   useEffect(() => {
-    const getUserSession = async () => {
-      setLoading(true);
+    if (session?.user && typeof session.user.email === 'string') {
+      const provider = session.user.app_metadata.provider;
+      const isSocialLogin =
+        provider === 'kakao' || provider === 'google' || provider === 'github';
 
-      try {
-        const { data, error } = await supabase.auth.getSession();
-
-        if (error) throw error;
-
-        if (!data.session) {
-          setLoading(false);
-          return;
-        }
-
-        if (data?.session?.user) {
-          const provider = data.session.user.app_metadata.provider;
-
-          const isSocialLogin =
-            provider === 'kakao' ||
-            provider === 'google' ||
-            provider === 'github';
-
-          if (isSocialLogin) {
-            saveOrUpdateUserProfile(data?.session?.user, provider);
-          }
-        }
-
-        // 세션 정보가 있는 경우 프로필 정보도 조회
-        await fetchUserProfile(data.session.user.email!);
-        setSession(data.session);
-        console.log('로그인 데이터: ', data);
-      } catch (error) {
-        toast.error('Session 처리에 오류가 발생했습니다.');
-        console.log(error);
+      // 소셜 로그인 사용자인지 확인 후, 프로필 저장 or 업데이트
+      if (isSocialLogin) {
+        saveOrUpdateUserProfile(session.user, provider);
       }
-    };
 
-    getUserSession();
-  }, [router]);
+      fetchUserProfile(session.user.email);
+    } else {
+      setNickname(null);
+    }
+  }, [session]);
+
+  useEffect(() => {
+    // 세션 상태 변경 감지
+    const { data } = supabase.auth.onAuthStateChange(() => {
+      refetchSession(); // 세션 다시 가져옴
+    });
+
+    // cleanup 함수를 사용해 로그아웃 시, 즉시 반영
+    return () => {
+      data.subscription?.unsubscribe();
+    };
+  }, [refetchSession]);
+
+  // 이메일을 이용하여 사용자 프로필 정보를 가져오고, 가져온 닉네임을 상태로 설정
+  const fetchUserProfile = async (email: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .select('nickname')
+        .eq('email', email)
+        .maybeSingle();
+
+      if (error) throw error;
+      if (data) setNickname(data.nickname);
+    } catch (error) {
+      console.error('사용자 프로필을 불러오는 데 실패했습니다: ', error);
+    }
+  };
 
   const saveOrUpdateUserProfile = async (user: any, provider: string) => {
     const { data: existingProfiles, error: profileError } = await supabase
       .from('user_profiles')
       .select('nickname, user_profile_image')
-      .eq('email', user.email)
+      .eq('email', user.email) // 이메일을 기준으로 프로필 조회
       .maybeSingle();
 
     if (profileError) {
@@ -101,12 +108,15 @@ const Main: React.FC = () => {
 
     if (existingProfiles) return;
 
+    // 프로필이 존재하지 않으면 새로운 프로필 생성
     if (!existingProfiles) {
       const { data: existingNicknames } = await supabase
         .from('user_profiles')
         .select('nickname')
         .eq('nickname', nickname);
 
+      // 소셜 로그인 사용자의 프로필 이미지와 닉네임 저장
+      // 닉네임이 이미 존재하면 고유한 닉네임으로 업데이트
       if (existingNicknames && existingNicknames.length > 0) {
         nickname += `_${Date.now()}`;
       }
@@ -139,38 +149,6 @@ const Main: React.FC = () => {
     }
   };
 
-  useEffect(() => {
-    if (session?.user && typeof session.user.email === 'string') {
-      fetchUserProfile(session.user.email);
-    }
-  }, [session?.user]);
-
-  const fetchUserProfile = async (email: string) => {
-    if (!session?.user) {
-      return;
-    }
-
-    try {
-      const { data, error } = await supabase
-        .from('user_profiles')
-        .select('nickname')
-        .eq('email', email)
-        .maybeSingle();
-
-      if (error) {
-        throw error;
-      }
-
-      if (data) {
-        setNickname(data.nickname);
-      }
-    } catch (error) {
-      console.error('사용자 프로필을 불러오는 데 실패했습니다: ', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleCategorySelection = (category: string) => {
     if (category !== selectedState.category) {
       window.history.pushState({}, '', `?category=${category}`);
@@ -186,42 +164,6 @@ const Main: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchStudyPlaces(selectedState.category, selectedState.placeType);
-  }, [selectedState.category, selectedState.placeType]);
-
-  const fetchStudyPlaces = useCallback(
-    async (category: string, placeType: string) => {
-      setLoading(true);
-
-      let query = supabase
-        .from('study_places')
-        .select('*')
-        .order('rating', { ascending: false });
-
-      if (category) {
-        query = query.ilike('category', `%${category}%`);
-      }
-
-      if (placeType) {
-        query = query.ilike('place_type', `%${placeType}%`);
-      }
-
-      try {
-        const { data, error } = await query;
-        if (error) throw error;
-        setStudyPlaces(data || []); // 데이터 설정
-      } catch (error) {
-        console.error('데이터 조회 실패: ', error);
-        toast.error('데이터를 불러오는 데 실패했습니다.');
-      } finally {
-        setLoading(false); // 데이터 로딩 완료
-      }
-    },
-    []
-  );
-
-  // 윈도우의 popstate 이벤트 리스너를 설정하여 URL 변경을 감지
-  useEffect(() => {
     const loadFromURL = () => {
       const params = new URLSearchParams(window.location.search);
       const category = params.get('category') || '';
@@ -232,13 +174,10 @@ const Main: React.FC = () => {
         placeType !== selectedState.placeType
       ) {
         setSelectedState({ category, placeType });
-        fetchStudyPlaces(category, placeType);
       }
     };
 
     window.addEventListener('popstate', loadFromURL);
-
-    // 초기 로딩 및 URL 변경 감지
     loadFromURL();
 
     return () => {
@@ -252,21 +191,20 @@ const Main: React.FC = () => {
     ));
   };
 
-  useEffect(() => {
-    // 로그인 상태 변경 감지
-    supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log(`Auth event: ${event}`);
-      setSession(session); // 세션 상태 업데이트
+  // 세션 및 데이터 로딩 상태 관리
+  const isLoading = sessionLoading || placesLoading;
 
-      if (session?.user) {
-        fetchUserProfile(session.user.email!); // 세션이 있는 경우 사용자 프로필 가져오기
-        setLoading(false);
-      } else {
-        setNickname(null); // 세션이 없으면 닉네임을 null로 설정하여 로그인하지 않은 상태 표시
-        setLoading(false);
-      }
-    });
-  }, []);
+  const categories = [
+    { label: '전체', value: '' },
+    { label: '스터디룸', value: '스터디룸' },
+    { label: '스터디카페', value: '스터디카페' },
+    { label: '일반카페', value: '일반카페' },
+    { label: '북카페', value: '북카페' },
+    { label: '노트북 이용', value: '노트북 이용' },
+    { label: '조용하고 한적한', value: '조용하고 한적한' },
+    { label: '세련되고 깔끔한', value: '세련되고 깔끔한' },
+    { label: '뷰 맛집', value: '뷰 맛집' },
+  ];
 
   return (
     <>
@@ -281,137 +219,46 @@ const Main: React.FC = () => {
                   Categories
                 </h1>
                 <div className='space-y-6 pb-8 text-xl font-medium text-gray-900 dark:text-gray-200'>
-                  {/* 필터 처리 로직 완성되면 map으로 돌릴 거임 */}
-                  {/* <div><button>추천</button></div> */}
-                  <div>
-                    <button
-                      type='button'
-                      onClick={() => {
-                        window.history.pushState({}, '', '/');
-                        setSelectedState({
-                          category: '',
-                          placeType: '',
-                        });
-                        fetchStudyPlaces('', '');
-                      }}
-                      className={`relative overflow-hidden before:absolute before:inset-x-0 before:bottom-0 before:h-[2px] before:bg-crimson before:scale-x-0 hover:before:scale-x-100 before:transition-transform ${
-                        selectedState.category === '' &&
-                        selectedState.placeType === ''
-                          ? 'text-gray-900 dark:text-gray-200'
-                          : 'text-gray-400 dark:text-gray-500'
-                      } hover:text-gray-900 hover:dark:text-gray-200 transform transition-transform duration-300 hover:translate-x-1`}
-                    >
-                      전체
-                    </button>
-                  </div>
-                  <div>
-                    <button
-                      type='button'
-                      onClick={() => handlePlaceTypeSelection('스터디룸')}
-                      className={`relative overflow-hidden before:absolute before:inset-x-0 before:bottom-0 before:h-[2px] before:bg-crimson before:scale-x-0 hover:before:scale-x-100 before:transition-transform ${
-                        selectedState.placeType === '스터디룸'
-                          ? 'text-gray-900 dark:text-gray-200'
-                          : 'text-gray-400 dark:text-gray-500'
-                      } hover:text-gray-900 hover:dark:text-gray-200 transform transition-transform duration-300 hover:translate-x-1`}
-                    >
-                      스터디룸
-                    </button>
-                  </div>
-                  <div>
-                    <button
-                      type='button'
-                      onClick={() => handlePlaceTypeSelection('스터디카페')}
-                      className={`relative overflow-hidden before:absolute before:inset-x-0 before:bottom-0 before:h-[2px] before:bg-crimson before:scale-x-0 hover:before:scale-x-100 before:transition-transform ${
-                        selectedState.placeType === '스터디카페'
-                          ? 'text-gray-900 dark:text-gray-200'
-                          : 'text-gray-400 dark:text-gray-500'
-                      } hover:text-gray-900 hover:dark:text-gray-200 transform transition-transform duration-300 hover:translate-x-1`}
-                    >
-                      스터디카페
-                    </button>
-                  </div>
-                  <div>
-                    <button
-                      type='button'
-                      onClick={() => handlePlaceTypeSelection('일반카페')}
-                      className={`relative overflow-hidden before:absolute before:inset-x-0 before:bottom-0 before:h-[2px] before:bg-crimson before:scale-x-0 hover:before:scale-x-100 before:transition-transform ${
-                        selectedState.placeType === '일반카페'
-                          ? 'text-gray-900 dark:text-gray-200'
-                          : 'text-gray-400 dark:text-gray-500'
-                      } hover:text-gray-900 hover:dark:text-gray-200 transform transition-transform duration-300 hover:translate-x-1`}
-                    >
-                      일반카페
-                    </button>
-                  </div>
-                  <div>
-                    <button
-                      type='button'
-                      onClick={() => handlePlaceTypeSelection('북카페')}
-                      className={`relative overflow-hidden before:absolute before:inset-x-0 before:bottom-0 before:h-[2px] before:bg-crimson before:scale-x-0 hover:before:scale-x-100 before:transition-transform ${
-                        selectedState.placeType === '북카페'
-                          ? 'text-gray-900 dark:text-gray-200'
-                          : 'text-gray-400 dark:text-gray-500'
-                      } hover:text-gray-900 hover:dark:text-gray-200 transform transition-transform duration-300 hover:translate-x-1`}
-                    >
-                      북카페
-                    </button>
-                  </div>
-                  <div>
-                    <button
-                      type='button'
-                      onClick={() => handleCategorySelection('노트북 이용')}
-                      className={`relative overflow-hidden before:absolute before:inset-x-0 before:bottom-0 before:h-[2px] before:bg-crimson before:scale-x-0 hover:before:scale-x-100 before:transition-transform ${
-                        selectedState.category === '노트북 이용'
-                          ? 'text-gray-900 dark:text-gray-200'
-                          : 'text-gray-400 dark:text-gray-500'
-                      } hover:text-gray-900 hover:dark:text-gray-200 transform transition-transform duration-300 hover:translate-x-1`}
-                    >
-                      노트북 이용
-                    </button>
-                  </div>
-                  <div>
-                    <button
-                      type='button'
-                      onClick={() => handleCategorySelection('조용하고 한적한')}
-                      className={`relative overflow-hidden before:absolute before:inset-x-0 before:bottom-0 before:h-[2px] before:bg-crimson before:scale-x-0 hover:before:scale-x-100 before:transition-transform ${
-                        selectedState.category === '조용하고 한적한'
-                          ? 'text-gray-900 dark:text-gray-200'
-                          : 'text-gray-400 dark:text-gray-500'
-                      } hover:text-gray-900 hover:dark:text-gray-200 transform transition-transform duration-300 hover:translate-x-1`}
-                    >
-                      조용하고 한적한
-                    </button>
-                  </div>
-                  <div>
-                    <button
-                      type='button'
-                      onClick={() => handleCategorySelection('세련되고 깔끔한')}
-                      className={`relative overflow-hidden before:absolute before:inset-x-0 before:bottom-0 before:h-[2px] before:bg-crimson before:scale-x-0 hover:before:scale-x-100 before:transition-transform ${
-                        selectedState.category === '세련되고 깔끔한'
-                          ? 'text-gray-900 dark:text-gray-200'
-                          : 'text-gray-400 dark:text-gray-500'
-                      } hover:text-gray-900 hover:dark:text-gray-200 transform transition-transform duration-300 hover:translate-x-1`}
-                    >
-                      세련되고 깔끔한
-                    </button>
-                  </div>
-                  <div>
-                    <button
-                      type='button'
-                      onClick={() => handleCategorySelection('뷰 맛집')}
-                      className={`relative overflow-hidden before:absolute before:inset-x-0 before:bottom-0 before:h-[2px] before:bg-crimson before:scale-x-0 hover:before:scale-x-100 before:transition-transform ${
-                        selectedState.category === '뷰 맛집'
-                          ? 'text-gray-900 dark:text-gray-200'
-                          : 'text-gray-400 dark:text-gray-500'
-                      } hover:text-gray-900 hover:dark:text-gray-200 transform transition-transform duration-300 hover:translate-x-1`}
-                    >
-                      뷰 맛집
-                    </button>
-                  </div>
+                  {categories.map((category) => (
+                    <div key={category.value}>
+                      <button
+                        type='button'
+                        onClick={() => {
+                          if (category.value === '') {
+                            window.history.pushState({}, '', '/');
+                            setSelectedState({ category: '', placeType: '' });
+                          } else if (
+                            [
+                              '스터디룸',
+                              '스터디카페',
+                              '일반카페',
+                              '북카페',
+                            ].includes(category.value)
+                          ) {
+                            handlePlaceTypeSelection(category.value);
+                          } else {
+                            handleCategorySelection(category.value);
+                          }
+                        }}
+                        className={`relative overflow-hidden before:absolute before:inset-x-0 before:bottom-0 before:h-[2px] before:bg-crimson before:scale-x-0 hover:before:scale-x-100 before:transition-transform ${
+                          (category.value === '' &&
+                            selectedState.category === '' &&
+                            selectedState.placeType === '') ||
+                          (category.value !== '' &&
+                            (selectedState.category === category.value ||
+                              selectedState.placeType === category.value))
+                            ? 'text-gray-900 dark:text-gray-200'
+                            : 'text-gray-400 dark:text-gray-500'
+                        } hover:text-gray-900 hover:dark:text-gray-200 transform transition-transform duration-300 hover:translate-x-1`}
+                      >
+                        {category.label}
+                      </button>
+                    </div>
+                  ))}
                 </div>
               </form>
 
-              {loading ? (
+              {isLoading ? (
                 <div className='lg:col-span-3'>
                   <div className='flex flex-wrap'>{renderSkeletonCards(9)}</div>
                 </div>
@@ -437,7 +284,7 @@ const Main: React.FC = () => {
                     </div>
                   </div>
                   <div className='flex flex-wrap'>
-                    {studyPlaces.map((place) => (
+                    {filteredStudyPlaces?.map((place) => (
                       <React.Fragment key={place.place_id}>
                         <div
                           className='cursor-pointer transform transition duration-300 ease-in-out hover:scale-105'
