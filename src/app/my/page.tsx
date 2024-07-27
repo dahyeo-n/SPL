@@ -193,7 +193,7 @@ const My: React.FC = () => {
       return;
     }
 
-    const projectStorageUrl = `https://${process.env.NEXT_SUPABASE_PROJECT_ID}.supabase.co/storage/v1`;
+    const projectStorageUrl = `https://${process.env.NEXT_PUBLIC_SUPABASE_PROJECT_ID}.supabase.co/storage/v1`;
     const url = `${projectStorageUrl}/object/public/user_avatars/${encodeURIComponent(
       fileName
     )}`;
