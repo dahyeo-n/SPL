@@ -647,7 +647,7 @@ const Detail = () => {
                                 )}
                             </CardHeader>
 
-                            <CardBody className='m-2 px-3 py-0'>
+                            <CardBody className='m-2 px-3 py-0 overflow-y-hidden'>
                               <span className='pt-2 text-lg'>
                                 {comment.contents}
                               </span>
