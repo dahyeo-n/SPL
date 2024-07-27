@@ -248,12 +248,14 @@ const Detail = () => {
   };
 
   // 스크랩 추가
+  // useMutation을 사용하여 스크랩 추가 및 취소 작업을 처리하고,
+  // 성공 시 queryClient.invalidateQueries를 호출하여 관련 쿼리를 무효화
   const addScrap = async () => {
     if (!checkLoginAndRedirect()) return;
 
     if (session && studyPlace && !isScrapped) {
       try {
-        // 해당 유저가 해당 공부 장소를 전에도 스크랩했는지 확인
+        // 유저가 해당 공부 장소를 전에도 스크랩했는지 확인
         const { data: existingScrap } = await supabase
           .from('study_place_scraps')
           .select('study_place_id')

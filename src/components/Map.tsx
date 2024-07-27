@@ -59,7 +59,7 @@ const Map: React.FC<MapProps> = ({ address }) => {
       // 카카오 맵 스크립트가 로드되지 않은 경우 스크립트 로드
       const script = document.createElement('script');
       script.id = scriptId;
-      script.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.NEXT_PUBLIC_KAKAO_MAP_API_KEY}&libraries=services,clusterer&autoload=false`;
+      script.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.NEXT_KAKAO_MAP_API_KEY}&libraries=services,clusterer&autoload=false`;
       document.head.appendChild(script);
 
       script.onload = () => window.kakao.maps.load(setMap);
