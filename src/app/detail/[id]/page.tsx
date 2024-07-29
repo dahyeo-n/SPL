@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import supabase from '.././../../supabaseClient';
 import { Session } from '@supabase/supabase-js';
@@ -221,108 +221,103 @@ const Detail = () => {
     return true;
   };
 
-  // 공부 장소의 스크랩 여부 확인
-  const checkScrapStatus = async () => {
-    if (!session) {
-      setIsScrapped(false);
-      return;
-    }
-
-    try {
+  // 스크랩 상태 확인을 위한 쿼리
+  const { data: scrapStatus } = useQuery({
+    queryKey: ['scrapStatus', pathname],
+    queryFn: async () => {
       const { data, error } = await supabase
         .from('study_place_scraps')
         .select('study_place_id')
-        .eq('user_id', session.user.id)
-        .eq('study_place_id', studyPlace?.place_id)
+        .eq('user_id', session?.user.id)
+        .eq('study_place_id', studyPlace.place_id)
         .limit(1);
 
-      if (error) {
-        console.error('스크랩 상태 조회 실패: ', error.message);
-        return;
-      }
+      if (error) throw error;
+      return data.length > 0;
+    },
+    enabled: !!session, // session이 존재할 때만 useQuery 실행
+  });
 
-      setIsScrapped(data.length > 0); // data 배열의 길이를 확인하여 스크랩 상태 결정
-    } catch (err) {
-      console.error('스크랩 상태 확인 중 오류 발생: ', err);
-    }
-  };
+  // scrapStatus가 변경될 때마다 isScrapped 상태 업데이트
+  useEffect(() => {
+    if (scrapStatus !== undefined) setIsScrapped(scrapStatus);
+  }, [scrapStatus]);
 
-  // 스크랩 추가
+  // 스크랩 추가와 취소를 위한 mutation 함수
   // useMutation을 사용하여 스크랩 추가 및 취소 작업을 처리하고,
   // 성공 시 queryClient.invalidateQueries를 호출하여 관련 쿼리를 무효화
-  const addScrap = async () => {
-    if (!checkLoginAndRedirect()) return;
-
-    if (session && studyPlace && !isScrapped) {
-      try {
-        // 유저가 해당 공부 장소를 전에도 스크랩했는지 확인
-        const { data: existingScrap } = await supabase
-          .from('study_place_scraps')
-          .select('study_place_id')
-          .eq('user_id', session.user.id)
-          .eq('study_place_id', studyPlace.place_id)
-          .maybeSingle();
-
-        if (existingScrap) {
-          return;
-        }
-
+  const useAddScrap = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+      mutationFn: async (studyPlaceId: string) => {
         const { error } = await supabase
           .from('study_place_scraps')
           .insert([
-            { user_id: session.user.id, study_place_id: studyPlace.place_id },
+            { user_id: session?.user.id, study_place_id: studyPlaceId },
           ]);
-
-        if (error) {
-          toast.error('스크랩 추가 실패');
-        } else {
-          setIsScrapped(true);
-          localStorage.setItem('isScrapped', 'true');
-          toast.success('스크랩되었습니다.');
-        }
-      } catch (error) {
-        toast.error('스크랩 추가 중 오류 발생');
-      }
-    }
+        if (error) throw error;
+      },
+      onSuccess: () => {
+        queryClient
+          .invalidateQueries({ queryKey: ['scrapStatus', pathname] })
+          .then(() => {
+            queryClient.refetchQueries({ queryKey: ['scrapStatus', pathname] });
+            toast.success('스크랩되었습니다.');
+          });
+      },
+      onError: (error) => {
+        toast.error('스크랩에 실패하였습니다.');
+        console.error('스크랩 추가 에러: ', error);
+      },
+    });
   };
 
-  // 스크랩 취소
-  const removeScrap = async () => {
-    if (!checkLoginAndRedirect()) return;
-
-    if (session && studyPlace && isScrapped) {
-      const { data, error } = await supabase
-        .from('study_place_scraps')
-        .delete()
-        .match({
-          user_id: session.user.id,
-          study_place_id: studyPlace.place_id,
-        });
-
-      console.error('삭제 응답: ', data, error);
-
-      if (error) {
+  const useRemoveScrap = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+      mutationFn: async (studyPlaceId: string) => {
+        const { error } = await supabase
+          .from('study_place_scraps')
+          .delete()
+          .match({ user_id: session?.user.id, study_place_id: studyPlaceId });
+        if (error) throw error;
+      },
+      onSuccess: () => {
+        queryClient
+          .invalidateQueries({ queryKey: ['scrapStatus', pathname] })
+          .then(() => {
+            queryClient.refetchQueries({ queryKey: ['scrapStutus', pathname] });
+            toast.success('스크랩이 취소되었습니다.');
+          });
+      },
+      onError: (error) => {
         toast.error('스크랩 취소 실패');
-      } else {
-        setIsScrapped(false);
-        localStorage.setItem('isScrapped', 'false');
-        toast.success('스크랩 취소되었습니다.');
-      }
+        console.error('스크랩 취소 에러: ', error);
+      },
+    });
+  };
+
+  const addScrapMutation = useAddScrap();
+  const removeScrapMutation = useRemoveScrap();
+
+  // 스크랩 추가 함수
+  const addScrap = () => {
+    if (!checkLoginAndRedirect()) return;
+    if (session && studyPlace && !isScrapped) {
+      addScrapMutation.mutate(studyPlace.place_id);
     }
   };
 
-  // 상태가 변경될 때마다 스크랩 상태 확인
-  useEffect(() => {
-    const isScrappedFromStorage = localStorage.getItem('isScrapped');
-    setIsScrapped(isScrappedFromStorage === 'true');
-
-    if (studyPlace) {
-      checkScrapStatus();
+  // 스크랩 취소 함수
+  const removeScrap = () => {
+    if (!checkLoginAndRedirect()) return;
+    if (session && studyPlace && isScrapped) {
+      removeScrapMutation.mutate(studyPlace.place_id);
     }
-  }, [session, studyPlace]);
+  };
 
   if (studyPlaceLoading || commentsLoading) return <p>Loading...</p>;
-  if (!studyPlace) return <p>No study place found</p>;
+  if (!studyPlace) return <p>Study Place 정보가 없습니다.</p>;
 
   const handleRatingChange = (selectedRating: any) => {
     setComment((prevComment) => ({ ...prevComment, rating: selectedRating }));
