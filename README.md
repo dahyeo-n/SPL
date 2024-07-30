@@ -46,6 +46,12 @@ https://studyplace.vercel.app
 ![Next.js](https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=Next.js&logoColor=white)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
 
+### Server Asynchronous Communication
+![TanstackQuery](https://img.shields.io/badge/TanstackQuery-FF4000?style=for-the-badge&logo=tanstackquery&logoColor=white)
+
+### Client State Management
+![Zustand](https://img.shields.io/badge/Zustand-FACC2E?style=for-the-badge&logo=zustand&logoColor=white)
+
 ### Design
 
 ![Figma](https://img.shields.io/badge/Figma-F24E1E?style=for-the-badge&logo=figma&logoColor=white)
