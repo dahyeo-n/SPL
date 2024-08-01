@@ -2,7 +2,9 @@
 
 import React, { useEffect, useState } from 'react';
 import supabase from '@/supabaseClient';
+import useBearsStore from '@/zustand/bearsStore';
 import { useRouter } from 'next/navigation';
+
 import useStudyPlaces from '@/hooks/useStudyPlaces';
 import useUserSession from '@/hooks/useUserSession';
 
@@ -15,13 +17,14 @@ import Link from 'next/link';
 import { ToastContainer, toast } from 'react-toastify';
 
 const Main: React.FC = () => {
-  const [nickname, setNickname] = useState<string | null>(null);
   const [selectedState, setSelectedState] = useState({
     category: '',
     placeType: '',
   });
 
   const router = useRouter();
+
+  const { nickname, setNickname } = useBearsStore();
 
   // useStudyPlaces 훅을 사용하여 전체 데이터를 가져옴
   const { data: allStudyPlaces, isLoading: placesLoading } = useStudyPlaces();

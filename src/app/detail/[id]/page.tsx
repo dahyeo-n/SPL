@@ -1,28 +1,28 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { usePathname, useRouter } from 'next/navigation';
+import React, { useEffect, useRef, useState } from 'react';
 
-import supabase from '.././../../supabaseClient';
-import { Session } from '@supabase/supabase-js';
-import { CustomDetailCard } from '../../../components/common/CustomDetailCard';
 import Map from '../../../components/Map';
+import { CustomDetailCard } from '../../../components/common/CustomDetailCard';
+import useBearsStore from '../../../zustand/bearsStore';
+import supabase from '.././../../supabaseClient';
 
 import mediumZoom from 'medium-zoom';
 import { useTheme } from 'next-themes';
 import { toast } from 'react-toastify';
 
 import {
+  Avatar,
+  Button,
   Card,
-  CardHeader,
   CardBody,
   CardFooter,
-  Avatar,
-  Textarea,
+  CardHeader,
   Radio,
   RadioGroup,
-  Button,
+  Textarea,
 } from '@nextui-org/react';
 
 interface Comment {
@@ -46,11 +46,17 @@ interface CommentsArray {
 }
 
 const Detail = () => {
-  const [nickname, setNickname] = useState<string | null>(null);
-  const [userProfileImage, setUserProfileImage] = useState<string | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
+  const {
+    session,
+    nickname,
+    userProfileImage,
+    isScrapped,
+    setSession,
+    setNickname,
+    setUserProfileImage,
+    setIsScrapped,
+  } = useBearsStore();
 
-  const [isScrapped, setIsScrapped] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
