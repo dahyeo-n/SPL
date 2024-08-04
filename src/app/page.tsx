@@ -9,7 +9,7 @@ import useStudyPlaces from '@/hooks/useStudyPlaces';
 import useUserSession from '@/hooks/useUserSession';
 
 import Header from '@/components/common/Header';
-import { CustomMainCard } from '../components/common/CustomMainCard';
+import CustomMainCard from '../components/common/CustomMainCard';
 import SkeletonCard from '../components/common/SkeletonCard';
 
 import { Spacer } from '@nextui-org/react';

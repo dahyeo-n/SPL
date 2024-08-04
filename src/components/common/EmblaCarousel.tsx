@@ -17,6 +17,16 @@ type PropType = {
   options?: EmblaOptionsType;
 };
 
+// 최적화된 이미지 URL 생성 함수
+const getOptimizedImageUrl = (
+  src: string,
+  width: number,
+  height: number,
+  format: string = 'jpeg'
+) => {
+  return `${src}?w=${width}&h=${height}&fm=${format}`;
+};
+
 const EmblaCarousel: React.FC<PropType> = (props) => {
   const { slides, options } = props;
   const [emblaRef, emblaApi] = useEmblaCarousel(options);
@@ -38,7 +48,7 @@ const EmblaCarousel: React.FC<PropType> = (props) => {
           {slides.map((slide, index) => (
             <div className='embla__slide' key={index}>
               <img
-                src={slide}
+                src={getOptimizedImageUrl(slide, 1200, 600)}
                 alt={`Slide ${index}`}
                 className='embla__slide__img'
               />
