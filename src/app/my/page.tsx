@@ -5,7 +5,7 @@ import React, { useEffect, useState } from 'react';
 import supabase from '../../supabaseClient';
 
 import { useRouter } from 'next/navigation';
-import { CustomMainCard } from '../../components/common/CustomMainCard';
+import CustomMainCard from '../../components/common/CustomMainCard';
 
 import { toast } from 'react-toastify';
 

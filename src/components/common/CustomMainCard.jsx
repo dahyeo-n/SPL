@@ -3,7 +3,7 @@
 import React from 'react';
 import { Card } from '@nextui-org/react';
 
-export const CustomMainCard = ({ place, onCardClick }) => (
+const CustomMainCard = ({ place, onCardClick }) => (
   <div onClick={() => onCardClick(place.place_id)}>
     <Card className='w-[335px] p-4 mx-1 mb-10' radius='2xl'>
       <div
@@ -19,3 +19,5 @@ export const CustomMainCard = ({ place, onCardClick }) => (
     </Card>
   </div>
 );
+
+export default CustomMainCard;
